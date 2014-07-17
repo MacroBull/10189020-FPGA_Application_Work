@@ -171,7 +171,7 @@ set_location_assignment PIN_B15 -to oVGA_SYNC_N
 set_location_assignment PIN_H19 -to oVGA_VS
 set_location_assignment PIN_G15 -to iTD1_CLK27
 set_location_assignment PIN_H15 -to iTD2_CLK27
-set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
+set_global_assignment -name FLOW_ENABLE_RTL_VIEWER OFF
 set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS ON
@@ -180,12 +180,11 @@ set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_SIMULATION_TOOL "Custom Verilog HDL"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
-set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE AREA
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS OFF
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "IO PATHS AND MINIMUM TPD PATHS"
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING OFF
-set_global_assignment -name FITTER_AUTO_EFFORT_DESIRED_SLACK_MARGIN "1 ns"
 set_global_assignment -name TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS OFF
 set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL OFF
 set_global_assignment -name ENABLE_DRC_SETTINGS ON
@@ -196,20 +195,6 @@ set_location_assignment PIN_G18 -to AUD_DACLRCK
 set_location_assignment PIN_D14 -to oTD1_RESET_N
 set_location_assignment PIN_H18 -to I2C_SDAT
 set_location_assignment PIN_B10 -to oTD2_RESET_N
-set_global_assignment -name VERILOG_FILE hex.v
-set_global_assignment -name SYSTEMVERILOG_FILE dsp.sv
-set_global_assignment -name VERILOG_FILE I2C_Controller.v
-set_global_assignment -name VERILOG_FILE wm8731.v
-set_global_assignment -name VERILOG_FILE reset.v
-set_global_assignment -name VERILOG_FILE fixPoint.v
-set_global_assignment -name VERILOG_FILE video.v
-set_global_assignment -name VERILOG_FILE fractal_i.v
-set_global_assignment -name VERILOG_FILE complex.v
-set_global_assignment -name VERILOG_FILE trig_fix.v
-set_global_assignment -name VERILOG_FILE vga_time_generator.v
-set_global_assignment -name SYSTEMVERILOG_FILE lcd.sv
-set_global_assignment -name SYSTEMVERILOG_FILE top.sv
-set_global_assignment -name VERILOG_FILE hexTest.v
 set_location_assignment PIN_AG13 -to oHEXs[8]
 set_location_assignment PIN_AE16 -to oHEXs[9]
 set_location_assignment PIN_AF16 -to oHEXs[10]
@@ -266,4 +251,28 @@ set_location_assignment PIN_N2 -to oHEXs[35]
 set_location_assignment PIN_P3 -to oHEXs[34]
 set_location_assignment PIN_P2 -to oHEXs[33]
 set_location_assignment PIN_P1 -to oHEXs[32]
+set_global_assignment -name SAVE_DISK_SPACE OFF
+set_global_assignment -name IGNORE_PARTITIONS ON
+set_global_assignment -name POWER_USE_DEVICE_CHARACTERISTICS MAXIMUM
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT FAST
+set_global_assignment -name FITTER_EFFORT "FAST FIT"
+set_global_assignment -name FIT_ONLY_ONE_ATTEMPT ON
+set_global_assignment -name AUTO_MERGE_PLLS OFF
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MINIMUM
+set_global_assignment -name OPTIMIZE_TIMING OFF
+set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION NEVER
+set_global_assignment -name AUTO_PACKED_REGISTERS_STRATIXII OFF
+set_global_assignment -name VERILOG_FILE hex.v
+set_global_assignment -name SYSTEMVERILOG_FILE dsp.sv
+set_global_assignment -name VERILOG_FILE I2C_Controller.v
+set_global_assignment -name VERILOG_FILE wm8731.v
+set_global_assignment -name VERILOG_FILE reset.v
+set_global_assignment -name VERILOG_FILE fixPoint.v
+set_global_assignment -name VERILOG_FILE video.v
+set_global_assignment -name VERILOG_FILE fractal_i.v
+set_global_assignment -name VERILOG_FILE complex.v
+set_global_assignment -name VERILOG_FILE vga_time_generator.v
+set_global_assignment -name SYSTEMVERILOG_FILE lcd.sv
+set_global_assignment -name SYSTEMVERILOG_FILE top.sv
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -2,17 +2,17 @@
 `define fix [ws - 1:0]
 `define int [ws - dp - 1:0]
 
-module int2fix(
-	b,
-	a);
-	
-	output	`fix	b;
-	input	`int	a;
-	
-	parameter	ws = 16, dp = 8;
-	
-	assign	b = a << dp;
-endmodule
+// module int2fix(
+// 	b,
+// 	a);
+// 	
+// 	output	`fix	b;
+// 	input	`int	a;
+// 	
+// 	parameter	ws = 16, dp = 8;
+// 	
+// 	assign	b = a << dp;
+// endmodule
 
 module fix2int(
 	b,
@@ -57,21 +57,21 @@ module fixMul(
 	
 endmodule
 
-module fixDiv(
-	c,
-	a, b);
-	
-	output	`fix	c;
-	input	`fix	a, b;
-	
-	parameter	ws = 16, dp = 8;
-	
-	wire	[ws * 2 - 1:0]	r0;
-	
-	assign r0 = a << dp;
-	
-	assign	c = (r0 / b);
-endmodule
+// module fixDiv(
+// 	c,
+// 	a, b);
+// 	
+// 	output	`fix	c;
+// 	input	`fix	a, b;
+// 	
+// 	parameter	ws = 16, dp = 8;
+// 	
+// 	wire	[ws * 2 - 1:0]	r0;
+// 	
+// 	assign r0 = a << dp;
+// 	
+// 	assign	c = (r0 / b);
+// endmodule
 	
 // module normalize(
 // 	o,

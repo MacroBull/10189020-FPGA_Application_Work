@@ -6,12 +6,12 @@
 `define complex [2*ws - 1:0]
 
 module fractal(
-	iterCnt,
+	oIterCnt,
 	x, y,
 	c, 
 	thres);
 	
-	output	[iterws - 1:0]	iterCnt;
+	output	[iterws - 1:0]	oIterCnt;
 	
 	input	`complex	c;
 	input	[ws - 1:0]	x, y;
@@ -50,22 +50,22 @@ module fractal(
 	endgenerate
 	
 	assign	cmp[maxIter - 1] = 1;
-	assign	iterCnt = cmp^ (cmp - 1);
+	assign	oIterCnt = cmp^ (cmp - 1);
 	
 	
-	parameter r =  256/*.0*/, p = 10;
-	initial begin
-		#p $display("thres=%d", thres/r);
-		#p $display("c=%di+%d", c[ws*2 - 1: ws]/r, z[ws-1: 0]/r);
-		#p $display("z=%di+%d", z[ 0 * ws*2 + ws*2 - 1: 0 * ws*2 + ws]/r, z[0 * ws*2 +  ws-1: 0 * ws*2 + 0]/r);
-		#p $display("z=%di+%d", z[ 1 * ws*2 + ws*2 - 1: 1 * ws*2 + ws]/r, z[1 * ws*2 +  ws-1: 1 * ws*2 + 0]/r);
-		#p $display("z=%di+%d", z[ 2 * ws*2 + ws*2 - 1: 2 * ws*2 + ws]/r, z[2 * ws*2 +  ws-1: 2 * ws*2 + 0]/r);
-		#p $display("az=%d", az[ 2 * ws +  ws-1: 2 * ws + 0]/r);
-		#p $display("z=%di+%d", z[ 3 * ws*2 + ws*2 - 1: 3 * ws*2 + ws]/r, z[3 * ws*2 +  ws-1: 3 * ws*2 + 0]/r);
-		#p $display("az=%d", az[ 3 * ws +  ws-1: 3 * ws + 0]/r);
-// 		#p $display({ my, mx});
-		
-	end
+// 	parameter r =  256/*.0*/, p = 10;
+// 	initial begin
+// 		#p $display("thres=%d", thres/r);
+// 		#p $display("c=%di+%d", c[ws*2 - 1: ws]/r, z[ws-1: 0]/r);
+// 		#p $display("z=%di+%d", z[ 0 * ws*2 + ws*2 - 1: 0 * ws*2 + ws]/r, z[0 * ws*2 +  ws-1: 0 * ws*2 + 0]/r);
+// 		#p $display("z=%di+%d", z[ 1 * ws*2 + ws*2 - 1: 1 * ws*2 + ws]/r, z[1 * ws*2 +  ws-1: 1 * ws*2 + 0]/r);
+// 		#p $display("z=%di+%d", z[ 2 * ws*2 + ws*2 - 1: 2 * ws*2 + ws]/r, z[2 * ws*2 +  ws-1: 2 * ws*2 + 0]/r);
+// 		#p $display("az=%d", az[ 2 * ws +  ws-1: 2 * ws + 0]/r);
+// 		#p $display("z=%di+%d", z[ 3 * ws*2 + ws*2 - 1: 3 * ws*2 + ws]/r, z[3 * ws*2 +  ws-1: 3 * ws*2 + 0]/r);
+// 		#p $display("az=%d", az[ 3 * ws +  ws-1: 3 * ws + 0]/r);
+// // 		#p $display({ my, mx});
+// 		
+// 	end
 	
 endmodule
 	

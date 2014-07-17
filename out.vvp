@@ -1,0 +1,63 @@
+#! /usr/bin/vvp
+:ivl_version "0.9.7 " "(v0_9_7)";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x26d2a60 .scope module, "test" "test" 2 9;
+ .timescale 0 0;
+v0x27082d0_0 .net *"_s0", 31 0, C4<00000000000000000000000100000000>; 1 drivers
+v0x2708390_0 .net *"_s5", 0 0, L_0x27092d0; 1 drivers
+v0x2708430_0 .net *"_s7", 14 0, L_0x2709370; 1 drivers
+v0x27084d0_0 .net "m", 15 0, L_0x27094a0; 1 drivers
+v0x2708550_0 .net "m32", 31 0, L_0x2709010; 1 drivers
+v0x2708600_0 .var "n", 15 0;
+v0x27086c0_0 .net "n32", 31 0, L_0x2708b00; 1 drivers
+L_0x27091e0 .arith/mult 32, L_0x2708b00, C4<00000000000000000000000100000000>;
+L_0x27092d0 .part L_0x2709010, 31, 1;
+L_0x2709370 .part L_0x2709010, 0, 15;
+L_0x27094a0 .concat [ 15 1 0 0], L_0x2709370, L_0x27092d0;
+S_0x2707de0 .scope module, "inst0" "i16to32" 2 120, 2 136, S_0x26d2a60;
+ .timescale 0 0;
+v0x2707ed0_0 .net *"_s1", 0 0, L_0x2708770; 1 drivers
+v0x2707f90_0 .net *"_s2", 15 0, C4<1111111111111111>; 1 drivers
+v0x2708030_0 .net *"_s4", 15 0, C4<0000000000000000>; 1 drivers
+v0x27080d0_0 .net *"_s6", 15 0, L_0x2708940; 1 drivers
+v0x2708150_0 .net "i", 15 0, v0x2708600_0; 1 drivers
+v0x27081f0_0 .alias "o", 31 0, v0x27086c0_0;
+L_0x2708770 .part v0x2708600_0, 15, 1;
+L_0x2708940 .functor MUXZ 16, C4<0000000000000000>, C4<1111111111111111>, L_0x2708770, C4<>;
+L_0x2708b00 .concat [ 16 16 0 0], v0x2708600_0, L_0x2708940;
+S_0x26e3310 .scope module, "inst1" "ishr32_8" 2 121, 2 146, S_0x26d2a60;
+ .timescale 0 0;
+v0x26e3540_0 .net *"_s1", 0 0, L_0x2708c40; 1 drivers
+v0x27079d0_0 .net *"_s2", 7 0, C4<11111111>; 1 drivers
+v0x2707a70_0 .net *"_s4", 7 0, C4<00000000>; 1 drivers
+v0x2707b10_0 .net *"_s6", 7 0, L_0x2708d60; 1 drivers
+v0x2707bc0_0 .net *"_s9", 23 0, L_0x2708f20; 1 drivers
+v0x2707c60_0 .net "i", 31 0, L_0x27091e0; 1 drivers
+v0x2707d40_0 .alias "o", 31 0, v0x2708550_0;
+L_0x2708c40 .part L_0x27091e0, 31, 1;
+L_0x2708d60 .functor MUXZ 8, C4<00000000>, C4<11111111>, L_0x2708c40, C4<>;
+L_0x2708f20 .part L_0x27091e0, 8, 24;
+L_0x2709010 .concat [ 24 8 0 0], L_0x2708f20, L_0x2708d60;
+    .scope S_0x26d2a60;
+T_0 ;
+    %vpi_call 2 127 "$monitor", "n = %d %d", v0x2708600_0, v0x27086c0_0;
+    %delay 10, 0;
+    %movi 8, 10000, 16;
+    %set/v v0x2708600_0, 8, 16;
+    %delay 10, 0;
+    %movi 8, 55536, 16;
+    %set/v v0x2708600_0, 8, 16;
+    %delay 10, 0;
+    %vpi_call 2 130 "$display", "%d %h", v0x27084d0_0, v0x27084d0_0;
+    %delay 10, 0;
+    %vpi_call 2 131 "$display", "%d %h", v0x2708550_0, v0x2708550_0;
+    %end;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "test.v";

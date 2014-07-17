@@ -98,20 +98,55 @@ module test;
 // 		#10 $display(d, e, " ", f);
 // 	end
 
-	parameter p = 1;
+// 	parameter p = 1;
+// 	
+// 	reg AUD_BCLK, AUD_DACLRCK, mRST_N;
+// 	reg	i;
+// 	wire m, o;
+// 	
+// 	always begin
+// 		#1 AUD_BCLK = ~AUD_BCLK;
+// 		#1 AUD_BCLK = ~AUD_BCLK;
+// 	end
+// 
+// 	dacWrite	inst13(o, mRST_N, m, AUD_DACLRCK, AUD_BCLK);
+//  	adcRead	inst14(m, mRST_N, i, AUD_ADCLRCK, AUD_BCLK);
+
+	wire	[47:0]	disp;
+	reg	[15:0]	n;
+	wire	[15:0]	m;
+	wire	[31:0]	m32, n32;
 	
-	reg AUD_BCLK, AUD_DACLRCK, mRST_N;
-	reg	i;
-	wire m, o;
+	i16to32 inst0(n32, n);
+	ishr32_8 inst1(m32, n32 * 256);
+// 	assign 	m32 = ;
+	assign 	m = {m32[31],m32[14:0]};
+// 	assign 	m = n * 32'd9 / 32'd7;
 	
-	always begin
-		#1 AUD_BCLK = ~AUD_BCLK;
-		#1 AUD_BCLK = ~AUD_BCLK;
+	initial begin
+		$monitor("n = %d %d", n, n32);
+		#10 n = 10000;
+		#10 n = -10000;
+		#10 $display("%d %h", m, m);
+		#10 $display("%d %h", m32, m32);
 	end
 
-	dacWrite	inst13(o, mRST_N, m, AUD_DACLRCK, AUD_BCLK);
- 	adcRead	inst14(m, mRST_N, i, AUD_ADCLRCK, AUD_BCLK);
+endmodule
+
+module	i16to32(
+	o,
+	i);
+	output	[31:0]	o;
+	input	[15:0]	i;
+	assign	o = {i[15]?~16'h0:16'h0,i};
+endmodule
 
 
 
+module	ishr32_8(
+	o,
+	i);
+	output	[31:0]	o;
+	input	[31:0]	i;
+	assign	o = {i[31]?~8'h0:8'h0,i[31:8]};
 endmodule

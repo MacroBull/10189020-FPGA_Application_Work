@@ -87,7 +87,7 @@ endmodule
 	
 ///////////////////////int complex/////////////
 
-
+/*
 
 
 
@@ -174,4 +174,4 @@ module complex_absqr(
 	assign c = a`real * a`real + a`imag * a`imag;
 	
 endmodule
-	
+	*/

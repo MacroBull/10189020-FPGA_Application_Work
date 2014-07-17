@@ -1,4 +1,4 @@
-module lcdEnable(
+module	lcdEnable(
 	oLCD_ON, oLCD_BLON,
 	oLCD_RW);
 	
@@ -8,6 +8,48 @@ module lcdEnable(
 	assign oLCD_ON = 1'b1;
 	assign oLCD_BLON = 1'b1;
 	assign oLCD_RW = 1'b0;
+	
+endmodule
+
+module	utoa16(
+	o,
+	i);
+	
+	output	[5 * 8-1:0]	o;
+	input	[15:0]	i;
+	
+	wire	[7:0]	d0, d1, d2, d3 ,d4;
+	
+	assign	d4 = i / 16'd10000;
+	assign	d3 = i / 16'd1000 % 16'd10;
+	assign	d2 = i / 16'd100 % 16'd10;
+	assign	d1 = i / 16'd10 % 16'd10;
+	assign	d0 = i % 16'd10;
+	
+	assign	o = "00000" + {d4, d3, d2, d1, d0};
+	
+endmodule
+
+module	itoa16(
+	o,
+	i);
+	
+	output	[6 * 8-1:0]	o;
+	input	[15:0]	i;
+	
+	wire	[15:0]	mi;
+	
+	wire	[7:0]	d0, d1, d2, d3 ,d4;
+	
+	assign	mi = i[15]?-i:i;
+	
+	assign	d4 = mi / 16'd10000;
+	assign	d3 = mi / 16'd1000 % 16'd10;
+	assign	d2 = mi / 16'd100 % 16'd10;
+	assign	d1 = mi / 16'd10 % 16'd10;
+	assign	d0 = mi % 16'd10;
+	
+	assign	o = "00000" + {i[15]?"-":"+", d4, d3, d2, d1, d0};
 	
 endmodule
 
@@ -27,7 +69,8 @@ module	lcdWrite (
 	
 	parameter	LCD_INTIAL = 0;
 	parameter	LCD_LINE1 = 5;
-	parameter	LCD_CH_LINE = LCD_LINE1+16;
+	parameter	LCD_CH_LINE1 = 4;
+	parameter	LCD_CH_LINE2 = LCD_LINE1+16;
 	parameter	LCD_LINE2 = LCD_LINE1+16+1;
 	parameter	INDEX_MAX = LCD_LINE1+32+1;
 // 	parameter	LCD_INS = {8'h38, 8'h0C, 8'h01, 8'h06, 8'h80};
@@ -62,9 +105,9 @@ module	lcdWrite (
 								1:	{oLCD_RS, oLCD_D} <= 9'h00C;
 								2:	{oLCD_RS, oLCD_D} <= 9'h001;
 								3:	{oLCD_RS, oLCD_D} <= 9'h006;
-								4:	{oLCD_RS, oLCD_D} <= 9'h080;
-								LCD_CH_LINE:	{oLCD_RS, oLCD_D} <= 9'h0C0;
-								default:	if (index < LCD_CH_LINE)
+								LCD_CH_LINE1:	{oLCD_RS, oLCD_D} <= 9'h080;
+								LCD_CH_LINE2:	{oLCD_RS, oLCD_D} <= 9'h0C0;
+								default:	if (index < LCD_CH_LINE2)
 										{oLCD_RS, oLCD_D} <= {1'b1, iString0[index - LCD_LINE1]};
 									else
 										{oLCD_RS, oLCD_D} <= {1'b1, iString1[index - LCD_LINE2]};
@@ -93,6 +136,7 @@ module	lcdWrite (
 						end
 				endcase
 			end
+			else index = LCD_CH_LINE1;
 		end
 	end
 
@@ -161,28 +205,28 @@ module lcdController (
 	
 endmodule
 
-module lcdEnablez(
-	oLCD_ON, oLCD_BLON,
-	oLCD_RW,
-	iEnable);
-	
-	output	oLCD_ON, oLCD_BLON;
-	output	oLCD_RW;
-	
-	reg	oLCD_ON, oLCD_BLON;
-	reg	oLCD_RW;
-	
-	input	iEnable;
-	
-	always @(iEnable) begin
-		if (iEnable) begin
-			oLCD_ON <= 1'b1;
-			oLCD_BLON <= 1'b1;
-			oLCD_RW <= 1'b0;
-		end
-		else begin
-			oLCD_ON <= 1'b0;
-			oLCD_BLON <= 1'b0;
-		end
-	end
-endmodule
+// module lcdEnablez(
+// 	oLCD_ON, oLCD_BLON,
+// 	oLCD_RW,
+// 	iEnable);
+// 	
+// 	output	oLCD_ON, oLCD_BLON;
+// 	output	oLCD_RW;
+// 	
+// 	reg	oLCD_ON, oLCD_BLON;
+// 	reg	oLCD_RW;
+// 	
+// 	input	iEnable;
+// 	
+// 	always @(iEnable) begin
+// 		if (iEnable) begin
+// 			oLCD_ON <= 1'b1;
+// 			oLCD_BLON <= 1'b1;
+// 			oLCD_RW <= 1'b0;
+// 		end
+// 		else begin
+// 			oLCD_ON <= 1'b0;
+// 			oLCD_BLON <= 1'b0;
+// 		end
+// 	end
+// endmodule
