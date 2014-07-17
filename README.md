@@ -8,4 +8,5 @@ WOW FPGA Audio Visualization
 
 ** 请不要长时间观看 **
 
-![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot.jpg)
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot0.jpg)
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot1.jpg)
