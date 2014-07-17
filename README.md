@@ -1,4 +1,4 @@
-WOW FPGA Audio Visualization
+WOW FPGA Audio Process and Visualization
 ================
 主要是音频信号处理和可视化, 包括:
     
