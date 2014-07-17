@@ -7,3 +7,5 @@ WOW FPGA Audio Visualization
 有"快门效果"
 
 ** 请不要长时间观看 **
+
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot.jpg)
