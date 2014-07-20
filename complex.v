@@ -1,3 +1,4 @@
+// complex number:
 // wire [2*ws - 1:0]  = {im, re}
 
 
@@ -36,6 +37,8 @@ module fixComplex_mul(
 	
 	wire	`fix	p0, p1, p2, p3;
 	
+	////c = a*b = (a.r*b.r-a.i*b.i) + (a.r*b.i+a.i*b.r)i
+	
 	fixMul	#(ws, dp)	op0(p0, a`imag, b`real);
 	fixMul	#(ws, dp)	op1(p1, b`imag, a`real);
 	fixMul	#(ws, dp)	op2(p2, a`real,  b`real);
@@ -46,7 +49,7 @@ module fixComplex_mul(
 endmodule
 
 
-module fixComplex_fixAbsqr(
+module fixComplex_fixAbsqr( // b = abs(a)**2
 	b,
 	a);
 	
@@ -58,13 +61,15 @@ module fixComplex_fixAbsqr(
 	
 	wire	`fix	p0, p1;
 	
+	//// b = a.r**2 + a.i**2
+	
 	fixMul	#(ws, dp)	op0(p0, a`real,  a`real);
 	fixMul	#(ws, dp)	op1(p1, a`imag,  a`imag);
 	assign b = p0 + p1;
 	
 endmodule
 
-module fixComplex_intAbsqr(
+module fixComplex_intAbsqr( //// b = int(abs(a)**2)
 	b,
 	a);
 	

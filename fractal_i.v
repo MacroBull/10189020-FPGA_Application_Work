@@ -6,6 +6,22 @@
 `define complex [2*ws - 1:0]
 
 module fractal(
+	/*
+	* This is a generator for Julia set by:
+	*
+	* 	initial z0(real, image) = coord(x,y)
+	* 	iterate z(i+1) = z(i)**2 + c
+	* 	return i when abs(z) > threshold
+	*
+	* represent i by a color value and we get map_of_color = Julia(c, threshold)
+	* which is the fractal graph of a Julia set.
+	* 
+	* In this module, we calculate the iteration in parallel
+	* compared results of abs(z) > threshold stores in cmp
+	* to get the iteration count when abs(z) > threshold appear first, simply find the lowest bit 1
+	* to conver such cmp to a color scheme, simply make use of cmp^(cmp-1)
+	* cmp = 010011000 (low bit 1 at bit4) -> cmp^(cmp-1) = 1111 (4 * bit 1) -> {r, g, b} = 1111
+	*/
 	oIterCnt,
 	x, y,
 	c, 
@@ -30,12 +46,12 @@ module fractal(
 	
 	assign fx = x - xOff;
 	assign fy = y - yOff;
-	assign z[ws*2 - 1:0] = {fy, fx};
+	assign z[ws*2 - 1:0] = {fy, fx}; // initial z(0)
 	
 	genvar i;
 	
 	generate 
-		for (i=0;i<maxIter-1;i=i+1) begin : mapIteration
+		for (i=0;i<maxIter-1;i=i+1) begin : mapIteration // z(i+1) = z(i)**2 + c, cmp(i) = z(i) > threshold
 			fixComplex_mul op0(
 				zz[(i+1)*ws*2 - 1:i*ws*2], 
 				z[(i+1)*ws*2 - 1:i*ws*2], z[(i+1)*ws*2 - 1:i*ws*2]);
@@ -45,11 +61,11 @@ module fractal(
 			fixComplex_fixAbsqr op2(
 				az[(i+1)*ws-1:i*ws],
 				z[(i+1)*ws*2 - 1:i*ws*2]);
-			assign cmp[i] = az[(i+1)*ws-1:i*ws] > thres; // both positie
+			assign cmp[i] = az[(i+1)*ws-1:i*ws] > thres; // both positie values
 		end
 	endgenerate
 	
-	assign	cmp[maxIter - 1] = 1;
+	assign	cmp[maxIter - 1] = 1; // itercount = maxIter if itercount > maxIter
 	assign	oIterCnt = cmp^ (cmp - 1);
 	
 	

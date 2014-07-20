@@ -1,10 +1,14 @@
-///////////// NOTE  Using ~ instead of - to avoid -32768
+///////////// NOTE  Using ~ instead of - to avoid -(-32768) = -32768
 
 // `define	dType	shortint
 // `define	wsOff	(1 << (ws - 1))
 
 
 module dsp_peak(
+	// Display real time amplitude record on screen
+	// range from 0 to seqLen -1, value is x[i]
+	// on screen from 128 to 384, bar height is ((mx[15]?~mx:mx) >> 9) start from yPos
+	// color various with y value, aka amplitude
 	oColor,
 	iX, iY,
 	iDataCLK,
@@ -28,14 +32,14 @@ module dsp_peak(
 	assign	mx = x[(iX - 10'd128)/10'd4];
 // 	assign	mx = (iX & 10'h3)?x[(iX - 10'd128)/10'd4]:0;
 	
-	assign oColor = (
+	assign oColor = ( // if in_range then color else black
 		((iX>=128) & (iX<384) & (iY <= yPos)) &
 		(iY >= yPos - ((mx[15]?~mx:mx) >> 9))
 		) ? 
 		{(yPos - iY) << 3, 10'd300, iY << 1}
 		:0; // 128+-
 	
-	always	@(posedge iDataCLK) begin
+	always	@(posedge iDataCLK) begin //update the sequence
 		x <= {x[seqLen - 2:0], iIn};
 	end
 	
@@ -43,6 +47,18 @@ endmodule
 
 
 module	dsp_iir_lowpass( 
+	/*
+	* This is a designed butterworth IIR Filter by:(python)
+	*	from scipy.signal import *
+	*	b, a = iirfilter(1, 0.1,rp = 1, rs = 1, btype = 'lowpass', ftype='butt')
+	*
+	* oOut = filter(iIn, @iClk)
+	* y + a[n-2] * y(1) + a[n-3] * y(2) ... + a[0] * y(n) = 
+	* b[n-1] * x + b[n-2] * x(1) + b[n-3] * x(2) ... + b[0] * x(n) @ T = iCLK
+	* 
+	*/
+	
+	
 	oOut,
 	iIn,
 	iCLK);
@@ -52,7 +68,9 @@ module	dsp_iir_lowpass(
 	input	iCLK;
 // 	input	[argLen - 1:0]	args;
 	
-	parameter	ws = 16, ews = 32, dpa = 16, dpb = 16;
+	// dpa is fix point for polynomial A, dpb is fix point for polynomial B, 
+	// with different dpa and dpb it reaches a higher precision in calculation
+	parameter	ws = 16, ews = 32, dpa = 16, dpb = 16; 
 	parameter	seqLen = 7;
 // 	parameter	argLen = 1;
 	
@@ -61,11 +79,11 @@ module	dsp_iir_lowpass(
 	wire	[ews - 1: 0] m32A, m32B, m32In, m32Out;
 
 	i16to32	conv0(m32In, iIn);
-	ishr32_16	conv1(m32Out, m32B - m32A);
+	ishr32_16	conv1(m32Out, m32B - m32A); // m32Out = filter(m32In)
 // 	ishr32_8	conv1(m32Out, m32B - m32A);
 // 	assign	m32Out = m32In;
 	
-	assign	oOut = {m32Out[31], m32Out[ws - 2:0]};// top
+	assign	oOut = {m32Out[31], m32Out[ws - 2:0]};// MSB for sign, low 16 bits output
 	
 	always @(posedge iCLK) begin
 		x <= {x[seqLen - 2:0], m32In};
@@ -97,6 +115,16 @@ module	dsp_iir_lowpass(
 endmodule
 
 module	dsp_iir_bandpass( 
+	/*
+	* This is a designed Chebyshev Type II IIR Filter by:(python)
+	*	from scipy.signal import *
+	*	b, a = iirfilter(1, [0.1,0.2], rp = 1, rs = 1, btype = 'band', ftype='cheby2')
+	*
+	* oOut = filter(iIn, @iClk)
+	* y + a[n-2] * y(1) + a[n-3] * y(2) ... + a[0] * y(n) = 
+	* b[n-1] * x + b[n-2] * x(1) + b[n-3] * x(2) ... + b[0] * x(n) @ T = iCLK
+	* 
+	*/
 	oOut,
 	iIn,
 	iCLK);
@@ -106,6 +134,8 @@ module	dsp_iir_bandpass(
 	input	iCLK;
 // 	input	[argLen - 1:0]	args;
 	
+	// dpa is fix point for polynomial A, dpb is fix point for polynomial B, 
+	// with different dpa and dpb it reaches a higher precision in calculation
 	parameter	ws = 16, ews = 32, dpa = 16, dpb = 16;
 	parameter	seqLen = 3;
 // 	parameter	argLen = 1;
@@ -115,11 +145,11 @@ module	dsp_iir_bandpass(
 	wire	[ews - 1: 0] m32A, m32B, m32In, m32Out;
 
 	i16to32	conv0(m32In, iIn);
-	ishr32_16	conv1(m32Out, m32B - m32A);
+	ishr32_16	conv1(m32Out, m32B - m32A); // m32Out = filter(m32In)
 // 	ishr32_8	conv1(m32Out, m32B - m32A);
 // 	assign	m32Out = m32In;
 	
-	assign	oOut = {m32Out[31], m32Out[ws - 2:0]};// top
+	assign	oOut = {m32Out[31], m32Out[ws - 2:0]};// MSB for sign, low 16 bits output
 	
 	always @(posedge iCLK) begin
 		x <= {x[seqLen - 2:0], m32In};
@@ -143,6 +173,17 @@ module	dsp_iir_bandpass(
 endmodule
 
 module	dsp_fir( 
+	/*
+	* This is a designed FIR Filter by:(python)
+	*	from scipy.signal import *
+	*	b = firwin2(seqLen, freqs, gains, antisymmetric = False)
+	*
+	* oOut = filter(iIn, @iClk)
+	* y = b[n-1] * x + b[n-2] * x(1) + b[n-3] * x(2) ... + b[0] * x(n) @ T = iCLK
+	* 
+	* iIndex to select preset from Techno ... T3
+	* gain values reffered from pulseaudio-equalizer
+	*/
 	oOut,
 	iIn,
 	iCLK,
@@ -168,7 +209,8 @@ module	dsp_fir(
 // 	assign	oOut = m32B[31:16]; // gain - (16-dp)
 // 	assign	oOut = {m32B[31], m32B[15:8]};
 
-	assign	oOut = ((iIndex == 0)? m32B0[31:16]:
+	// m32Out = filter(m32In)
+	assign	oOut = ((iIndex == 0)? m32B0[31:16]: 
 		(iIndex == 1)? m32B1[31:16]:
 		(iIndex == 2)? m32B2[31:16]:
 		(iIndex == 3)? m32B3[31:16]:
@@ -330,7 +372,12 @@ module	dsp_fir(
 	
 endmodule
 
-module	dsp_fir_spectrum( 
+module	dsp_fir_spectrum( /*
+	* Derived from FIR filter
+	* Amp@freq = filter@bandpass_centr_freq(iIn, @iClk)
+	* Gain@freq = abs(Amp@freq)
+	* oSpec = Holder(log2(Gain), T = iCLK)  (5bits)
+	*/
 	oSpec,
 	iIn,
 	iCLK);
@@ -341,15 +388,14 @@ module	dsp_fir_spectrum(
 	
 	parameter	ws = 16, ews = 32, dp = 12;
 	parameter	seqLen = 15;
-// 	parameter	bG0 = 30, bG1 = 30, bG2 = 30, bG3 = 30;
 	parameter	cntMax = 6000;
 	
 	reg	[seqLen - 1:0][ews - 1:0]	x;
 	
 	
-	wire	[ews - 1: 0] m32In, m32B0, m32B1, m32B2, m32B3;
-	wire	[4: 0] m5B0, m5B1, m5B2, m5B3;
-	reg	[4: 0] b5B0, b5B1, b5B2, b5B3, m5M0, m5M1, m5M2, m5M3;
+	wire	[ews - 1: 0] m32In, m32B0, m32B1, m32B2, m32B3; // 32-bit registers for x and y
+	wire	[4: 0] m5B0, m5B1, m5B2, m5B3; // 5-bit wire for log(gain)
+	reg	[4: 0] b5B0, b5B1, b5B2, b5B3, m5M0, m5M1, m5M2, m5M3; // 5-bit registers for synced/holded log(gain)
 	reg	[15: 0] cnt;
 
 	i16to32	conv0(m32In, iIn);	
@@ -371,14 +417,15 @@ module	dsp_fir_spectrum(
 		b5B2 <= m5B2;
 		b5B3 <= m5B3;
 		
-		if (b5B0>m5M0) m5M0 <= b5B0;
+		// only values syned to registers are stable and valid
+		if (b5B0>m5M0) m5M0 <= b5B0; 
 		if (b5B1>m5M1) m5M1 <= b5B1;
 		if (b5B2>m5M2) m5M2 <= b5B2;
 		if (b5B3>m5M3) m5M3 <= b5B3;
 		
 		if (cnt)
 			cnt <= cnt -1;
-		else begin
+		else begin // outputs holder fall a bit every cnt == 0
 			cnt <= cntMax;
 			m5M0 <= m5M0 >> 1;
 			m5M1 <= m5M1 >> 1;
@@ -470,13 +517,17 @@ endmodule
 
 
 module dsp_volume(
+	/*
+	* oOut = iIn *iVolume / (iVolume / 2)
+	* output = 2x input max
+	*/
 	oOut,
 	iIn,
 	iVolume);
 
 	output	[ws - 1: 0]	oOut;
 	input	[ws - 1: 0]	iIn;
-	input	[vws: 0]	iVolume; // + twice volume!
+	input	[vws: 0]	iVolume;
 	
 	parameter	ws = 16, vws = 5;
 	
@@ -541,6 +592,12 @@ endmodule
 // endmodule
 
 module dsp_AGC(
+	/*
+	* oOut = iIn *iVolume
+	* max volume = vMax(32x)
+	* max output Amp = 8191
+	* volume ramp up period = cntMax
+	*/
 	oOut,
 	iIn,
 	iCLK,
@@ -570,7 +627,7 @@ module dsp_AGC(
 	
 	always @(posedge iCLK) begin
 		mAbs <= iIn[15]?~iIn:iIn;
-		if (mAbs > mMax) begin
+		if (mAbs > mMax) begin // got a higher peak, lower volume
 			vol <= poMax / mAbs;
 			mMax <= mAbs;
 			cnt <=cntMax;
@@ -578,7 +635,7 @@ module dsp_AGC(
 		else 
 			if (cnt)
 				cnt <= cnt - 1;
-			else begin
+			else begin // no higher peak, raise volume by vRamp, up to vMax
 				cnt <= cntMax;
 				if (vol < vMax)
 					vol <= vol + vRamp;
@@ -617,42 +674,3 @@ endmodule
 // 	end
 // 	
 // endmodule
-
-
-module	i16to32(
-	o,
-	i);
-	output	[31:0]	o;
-	input	[15:0]	i;
-	assign	o = {i[15]?-16'h1:16'h0,i};
-endmodule
-
-module	ishr32_8(
-	o,
-	i);
-	output	[31:0]	o;
-	input	[31:0]	i;
-	assign	o = {i[31]?~8'h0:8'h0,i[31:8]};
-endmodule
-
-module	ishr32_16(
-	o,
-	i);
-	output	[31:0]	o;
-	input	[31:0]	i;
-	assign	o = {i[31]?~16'h0:16'h0,i[31:16]};
-endmodule
-
-module	log2(
-	o,
-	i);
-	output	[4:0]	o;
-	input	[31:0]	i;
-	
-	assign	o = 
-		i[31]?31:i[30]?30:i[29]?29:i[28]?28:i[27]?27:i[26]?26:i[25]?25:i[24]?24:
-		i[23]?23:i[22]?22:i[21]?21:i[20]?20:i[19]?19:i[18]?18:i[17]?17:i[16]?16:
-		i[15]?15:i[14]?14:i[13]?13:i[12]?12:i[11]?11:i[10]?10:i[9]?9:i[8]?8:
-		i[7]?7:i[6]?6:i[5]?5:i[4]?4:i[3]?3:i[2]?2:i[1]?1:0;
-	
-endmodule
