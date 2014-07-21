@@ -1,3 +1,20 @@
+/*
+* Top-level of DE2-70 Audio Effector and Visualization
+* This is a project on Altera DE2-70 development and education board
+* Providing several audio effects processing including:
+* 	IIR filter, FIR filter, AGC, linear volume control, undersampling.
+* And audio visualzation processing including:
+* 	wave display, mini spectrum display, fractal visualzation.
+*
+* This code is successfully tested on Quartus 13.0
+* See README.md for more information
+* 
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
 module top(
 	/////////////output////////////////
 	oLEDR, oLEDG,
@@ -73,6 +90,9 @@ module top(
 // 	inout	[3:0]	ioGPIOs;
 	
 	//////////////defines////////////////////
+	
+	// ws means word size
+	// 3-channel 10-bit VGA color output
 	`define	VGA_COLOR_WS	30
 	
 	`define	KEY_RESET	iKEY[3]
@@ -87,7 +107,7 @@ module top(
 	`define	SW_DSP_FIR_OR_IIR	iSW[4]
 	`define	SW_DSP_IIR_SW0	iSW[5]
 	`define	SW_DSP_IIR_SW1	iSW[6]
-	//iSW[7] Map error
+	//iSW[7] seems to have a pin assignment error
 	`define	SW_DSP_FIR_DISPLAY	iSW[8]
 	
 	`define	SW_VIDEO_FRACTAL_ENABLE	iSW[16]
@@ -105,12 +125,13 @@ module top(
 	///////////System Control/////////////////
 	logic mRST_N;
 	
-	
+	// Global clock divider
 	reg	[31:0]	mCLK_50Div;
 	always	@(posedge iCLK_50) begin
 		mCLK_50Div <= mCLK_50Div +1;
 	end
 	
+	// Global reset manager
 	resetManager rstMan(mRST_N, 
 		iCLK_50, `KEY_RESET, );  
 	
@@ -123,11 +144,13 @@ module top(
 		oLCD_ON, oLCD_BLON,
 		oLCD_RW);
 		
+	// Strings to display on LCD
 	logic	[6 * 8-1:0]	s0,s1,s2,s3;
 	logic	[5 * 8-1:0]	svol;
 	wire	[6*8 - 1: 0]	firPresetName;
 	logic	[16*8-1:0]	LCD_line1, LCD_line2;
 	
+	// SW_DSP_FIR_DISPLAY is line1 content selector
 	assign	 LCD_line1 = `SW_DSP_FIR_DISPLAY?{" ", firPresetName, " : ", svol, " "}:{"iL", s0,"iR", s1};
 	assign	 LCD_line2 = {"oL", s2, "oR", s3};
 	
@@ -145,22 +168,22 @@ module top(
 		
 	
 	/////////////Audio Driver///////////////////
-	assign	oAUD_XCK = mCLK_50Div[1];
+	assign	oAUD_XCK = mCLK_50Div[1]; // 12.5MHz audio MCLK
 
 	wm8731Config	comp1(iCLK_50, mRST_N, oI2C_SCLK, I2C_SDAT);
 	
-	wire	[audio_ws - 1:0]	oL, oR, vL, vR, iL, iR;
-	wire	DACStream;
+	wire	[audio_ws - 1:0]	oL, oR, vL, vR, iL, iR; // input -> DSP -> volume -> output
+	wire	DACStream; // raw bit stream output, equivalent to oAUD_DACDAT, can be reused
 	
 	dacWrite	drv1(DACStream, mRST_N, oL, oR, AUD_DACLRCK, AUD_BCLK);//, oLEDG[7]); // debug
  	adcRead	drv2(iL, iR, mRST_N,  iAUD_ADCDAT, AUD_ADCLRCK, AUD_BCLK);
 
 	///////////////Audio Sink/Source Control////////////////////////
  	
-	assign	oAUD_DACDAT = (`SW_AUDIO_BYPASS)?iAUD_ADCDAT:DACStream;
- 	assign	oLEDG[4:0] = {DACStream, iAUD_ADCDAT, AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK};
+	assign	oAUD_DACDAT = (`SW_AUDIO_BYPASS)?iAUD_ADCDAT:DACStream; // bit stream bypass, no format convert process
+ 	assign	oLEDG[4:0] = {DACStream, iAUD_ADCDAT, AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK}; // Audio interface debugging on LED_GREEN
 	
-	assign oLEDR[15:0] = (`SW_AUDIO_BYPASS)?
+	assign oLEDR[15:0] = (`SW_AUDIO_BYPASS)? // Display amplitude on LED_RED, SW_AUDIO_LED_INDICATOR_CHN to select the channel
 		((`SW_AUDIO_LED_INDICATOR_CHN)?(iL[15]?~iL:iL):(iR[15]?~iR:iR)):
 		((`SW_AUDIO_LED_INDICATOR_CHN)?(oL[15]?~oL:oL):(oR[15]?~oR:oR));
 	
@@ -168,6 +191,7 @@ module top(
 	
 	initial	volume = 16; 
 	
+	// Continuous manual volume change
 	always @(posedge mCLK_50Div[21]) begin
 		if	((!`KEY_VOL_UP) &(volume < 63)) 
 			volume <= volume + 1;
@@ -177,6 +201,8 @@ module top(
 	
 	assign	oLEDG[7] = (iR == 16'd32768); // overflow indicator
 	/////////////////////Audio DSP////////////////////////////////
+	
+	//Clock divider for undersampling effects, SW_DSP_FILTER_CLK to select
 	reg	[15:0]	mAUDCLKDiv;
 	always	@(posedge AUD_ADCLRCK) begin
 		mAUDCLKDiv <= mAUDCLKDiv +1;
@@ -203,6 +229,8 @@ module top(
 		
 	
 	///////////////////////DSP - IIR////////////////////////////////
+	//To simply make a demo, IIR has only effect on one channel 
+	//filters can be connected stage by stage, temporary results store in mTubes
 	wire	[15:0]	mTube0, mTube1, mTube2, mTube3, mTube4, mTube5, mTube6, mTube7, vIIR;
 	parameter iirGain0 = 17;
 	parameter iirGain1 = 6;
@@ -218,6 +246,7 @@ module top(
 	dsp_iir_bandpass	dsp10(mTube7, mTube4, DSP_FILTER_CLK,);
 
 	///////////////////////DSP - FIR////////////////////////////////
+	// FIR filters use presets generated on computer, which can be switched by push KEY_FIR_PRESET_CHANGE
 	logic	[2:0]	firPresetIndex;
 	always @(posedge `KEY_FIR_PRESET_CHANGE) begin
 		firPresetIndex <= firPresetIndex +1;
@@ -238,7 +267,8 @@ module top(
 	dsp_fir	dsp12(vFIRR, iR, DSP_FILTER_CLK, firPresetIndex);
 	
 	/////////////////////DSP - Spectrum/////////////////////////////
-	
+	//Mini spectrum display a 4 band spectrum on screen, using different FIR filter gains on different frequencies
+	//painting parameter xSpecx, yScale, ySpecx configure the width, height, and position of each graph
 	
 	wire	onSpecL, onSpecR;
 	wire	[19:0]	mSpecL, mSpecR;
@@ -256,6 +286,7 @@ module top(
 	parameter	yScale = 10'd5;
 	parameter	ySpecL0 = 10'd120, ySpecR0 = 10'd300;
 	
+	// convert bit predicates to VGA color
 	assign	cSpec = (onSpecL|onSpecR)?{10'd500-vga_y, 10'd300, vga_y << 10'd1}:30'd0;
 	
 	assign	onSpecL = ((vga_x>xSpec0) & (vga_x<xSpec1))?((vga_y<=ySpecL0) & (vga_y > ySpecL0 - yScale*(mSpecL[4:0]-16))):
@@ -271,16 +302,24 @@ module top(
 		1'b0;
 	
 	////////////////////DSP - Wave Display//////////////////////////////////
+	//Wave display show waves on screen
+	//Each wave is a data sequence of audio source
+	//The content to display is synced with VGA vSync signal mVGA_VS
+	//Graph parameters is assigned to module parameters
+	
 	wire	[`VGA_COLOR_WS - 1: 0]	cWave, cWave0, cWave1;
 	
 	dsp_peak	#(16, 64, 10'd120)	dsp15(cWave0, vga_x, vga_y, mVGA_VS, iL);
 	dsp_peak	#(16, 64, 10'd300)	dsp16(cWave1, vga_x, vga_y, mVGA_VS, iR);
 	
+	// overlay two channels
 	assign cWave = cWave0?cWave0:cWave1?cWave1:0;
 	
-	////////////////////////////////////////////////
+	//////////////////////End of DSPs//////////////////////////
 	
 	//////////////Video/////////////////////
+	// Configure VGA output as 640x360(350)@25(26)Hz
+	// See video.v for parameter details
   	
   	reg [3:0] VGAClkDiv;
   	reg VGA_CLK;
@@ -295,7 +334,7 @@ module top(
 	end
   	
   	wire	[9:0]	vga_x, vga_y;
-  	wire	mVGA_VS; // Vsync!
+  	wire	mVGA_VS; // Vsync wire
   	
   	assign	oVGA_VS = mVGA_VS;
   	
@@ -306,6 +345,7 @@ module top(
 		vga_x, vga_y, 
 		VGA_CLK);
 	///////////////Video Overlays./////////////////
+	// Manipulate different graph sources to final screen content
 	
 	wire	[`VGA_COLOR_WS - 1:0]	cPixel;
 	
@@ -315,29 +355,33 @@ module top(
 // 	assign	cPixel =  (cSpec | cWave);
 	
 	///////////////Video - Fractal ////////////////
+	// Generate fractal graphics on screen in real time
+	// Some of the parameter is configure to vary with audio data to make cool effects
+	// See http://en.wikipedia.org/wiki/Julia_set for the algorithm and fractal_i.v for details
+	
 // 	logic	[31:0]	fractal_c;
 	logic	[31:0]	fractal_thres;
 	logic	[15:0]	fThc0, fThc1;
 	
+	// use vSync to avoid tearing
 // 	always @(posedge mCLK_50Div[23]) begin
 	always @(posedge mVGA_VS) begin
 		fThc0 <= (iR[15]?~iR:iR) >> 16'd3;
 		fThc1 <= (fThc1 + fThc0) >> 16'd1;
-		fractal_thres <= {16'd0, fThc1};
-// 		fractal_c <= {16'd40  + ( ((oL[15])?-oL:oL) >> 13), 16'd115}; 
+		fractal_thres <= {16'd0, fThc1}; // use threshold as variable
+// 		fractal_c <= {16'd40  + ( ((oL[15])?-oL:oL) >> 13), 16'd115};   // use c as variable
 // 		fractal_c <= {16'd37, 16'd104 + (oL + 16'd32768) / 16'd2730}; 
 	end
 		
-	parameter fractal_c = {16'd37, 16'd115}; // c = 0.45 -0.142857j;
-// 	parameter c = {16'd1 << 8, 16'd0};
-// 	parameter c = {16'd40, -16'd205};
-// 	parameter fractal_thres 100= 16'd16 << 8;
+	parameter fractal_c = {16'd37, 16'd115}; // c = 0.45 -0.142857j;   // use threshold as variable
+// 	parameter fractal_thres 100= 16'd16 << 8; // use c as variable
 	
 	wire	[`VGA_COLOR_WS - 1:0]	cFractal;
 	wire	[22:0]	fractal_z;
 	
-	assign {cFractal[29:25], cFractal[19:12], cFractal[9:1]} = fractal_z + 1;
-// // 	
+	assign {cFractal[29:25], cFractal[19:12], cFractal[9:1]} = fractal_z + 1; // map the result to a color shceme
+
+	// Origin location, fix point word size and dp
 	fractal #(175, 320, 16, 8) op0(fractal_z, vga_y, vga_x, fractal_c, fractal_thres);
 // 	fractal #(320, 240, 16, 8) fracInst0(z, x, y, c, thres);
 // 	fractal #(640, 360, 16, 8) fracInst0(z, x, y, c, thres);

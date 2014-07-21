@@ -1,3 +1,12 @@
+/*
+* Audio DSP modules
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
+
 ///////////// NOTE  Using ~ instead of - to avoid -(-32768) = -32768
 
 // `define	dType	shortint
@@ -181,7 +190,7 @@ module	dsp_fir(
 	* oOut = filter(iIn, @iClk)
 	* y = b[n-1] * x + b[n-2] * x(1) + b[n-3] * x(2) ... + b[0] * x(n) @ T = iCLK
 	* 
-	* iIndex to select preset from Techno ... T3
+	* iIndex to select preset from Techno .. T3
 	* gain values reffered from pulseaudio-equalizer
 	*/
 	oOut,
@@ -206,10 +215,7 @@ module	dsp_fir(
 
 	i16to32	conv0(m32In, iIn);
 	
-// 	assign	oOut = m32B[31:16]; // gain - (16-dp)
-// 	assign	oOut = {m32B[31], m32B[15:8]};
-
-	// m32Out = filter(m32In)
+	// m32Bx = filter(m32In)
 	assign	oOut = ((iIndex == 0)? m32B0[31:16]: 
 		(iIndex == 1)? m32B1[31:16]:
 		(iIndex == 2)? m32B2[31:16]:
@@ -518,7 +524,7 @@ endmodule
 
 module dsp_volume(
 	/*
-	* oOut = iIn *iVolume / (iVolume / 2)
+	* oOut = iIn *iVolume / (iVolume / 2) = iIn *iVolume >> (volume word size)
 	* output = 2x input max
 	*/
 	oOut,
@@ -529,7 +535,7 @@ module dsp_volume(
 	input	[ws - 1: 0]	iIn;
 	input	[vws: 0]	iVolume;
 	
-	parameter	ws = 16, vws = 5;
+	parameter	ws = 16, vws = 5; // volume word size
 	
 	wire	[31:0]	m32In, m32Out;
 	
@@ -594,9 +600,9 @@ endmodule
 module dsp_AGC(
 	/*
 	* oOut = iIn *iVolume
-	* max volume = vMax(32x)
+	* max volume = (vMax >> ws)(32x)
 	* max output Amp = 8191
-	* volume ramp up period = cntMax
+	* volume ramp rate = vRamp per cntMax@iCLK
 	*/
 	oOut,
 	iIn,
@@ -626,8 +632,8 @@ module dsp_AGC(
 	assign	m32Out = m32In * vol;
 	
 	always @(posedge iCLK) begin
-		mAbs <= iIn[15]?~iIn:iIn;
-		if (mAbs > mMax) begin // got a higher peak, lower volume
+		mAbs <= iIn[15]?~iIn:iIn; // get amplitude
+		if (mAbs > mMax) begin // a higher peak, lower the volume
 			vol <= poMax / mAbs;
 			mMax <= mAbs;
 			cnt <=cntMax;
@@ -635,7 +641,7 @@ module dsp_AGC(
 		else 
 			if (cnt)
 				cnt <= cnt - 1;
-			else begin // no higher peak, raise volume by vRamp, up to vMax
+			else begin // not a higher peak, raise volume by vRamp if less than vMax
 				cnt <= cntMax;
 				if (vol < vMax)
 					vol <= vol + vRamp;

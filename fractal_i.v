@@ -1,3 +1,10 @@
+/*
+* Fractal of Julia set calculation modules
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
 
 `define real [ws - 1:0]
 `define imag [2*ws - 1:ws]
@@ -11,16 +18,21 @@ module fractal(
 	*
 	* 	initial z0(real, image) = coord(x,y)
 	* 	iterate z(i+1) = z(i)**2 + c
-	* 	return i when abs(z) > threshold
+	* 	return i when abs(z(i)) > threshold
 	*
-	* represent i by a color value and we get map_of_color = Julia(c, threshold)
+	* represent i by a color value and we get map_of_color(x,y) = Julia(c, threshold)
 	* which is the fractal graph of a Julia set.
+	* See http://en.wikipedia.org/wiki/Julia_set for theory details.
 	* 
-	* In this module, we calculate the iteration in parallel
-	* compared results of abs(z) > threshold stores in cmp
-	* to get the iteration count when abs(z) > threshold appear first, simply find the lowest bit 1
-	* to conver such cmp to a color scheme, simply make use of cmp^(cmp-1)
-	* cmp = 010011000 (low bit 1 at bit4) -> cmp^(cmp-1) = 1111 (4 * bit 1) -> {r, g, b} = 1111
+	* In this module, we calculate the iteration by generated operation
+	* compared results of abs(z) > threshold stores in cmp[maxIter - 1:0]
+	* to get the iteration count when abs(z) > threshold appear first, simply to find the lowest bit 1
+	* to conver such cmp to a color scheme, make use of "cmp^(cmp-1)" like:
+	* cmp = 010011000 (low bit 1 at bit4) -> cmp^(cmp-1) = 1111 (4 * bit 1) -> {r, g, b} = 000...0001111
+	*
+	*
+	* benchmark result shows a capability of 22 iterations at 8.75MHz pixel clock (changes on x,y), about 700MIPS
+	*
 	*/
 	oIterCnt,
 	x, y,
@@ -31,17 +43,17 @@ module fractal(
 	
 	input	`complex	c;
 	input	[ws - 1:0]	x, y;
-	input	`fix	thres;
+	input	`fix	thres; // here thres means threshold ** 2
 	
-	parameter	xOff = 640;
+	parameter	xOff = 640; // origin point offset
 	parameter	yOff = 360;
 	parameter	ws = 16, dp = 8;
-	parameter	maxIter = 23, iterws = maxIter;
+	parameter	maxIter = 23, iterws = maxIter; // in this method, result word size equals the iteration limit
 	
-	wire	`fix	fx, fy;
-	wire	[maxIter * ws * 2 -1:0]	z, zz;
-	wire	[maxIter * ws -1:0]	az; // fix
-	wire	[maxIter - 1:0] cmp;
+	wire	`fix	fx, fy; // in fix, x and y
+	wire	[maxIter * ws * 2 -1:0]	z, zz; // in fix complex, zz = z*z
+	wire	[maxIter * ws -1:0]	az; // in fix, abs(z) **2
+	wire	[maxIter - 1:0] cmp; // in bits, compared result
 	
 	
 	assign fx = x - xOff;

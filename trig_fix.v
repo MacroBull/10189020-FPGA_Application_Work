@@ -1,4 +1,17 @@
-module	sin_fix_10( 
+/*
+* Triangle calculation tester modules
+* Calculate sine and cosine for fixed number
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
+module	sin_fix_10(  
+	/*
+	* input and output fix point dp = 10
+	* return sig == 1 if y is negative
+	*/
 	y,
 	sig, 
 	x);
@@ -21,6 +34,10 @@ module	sin_fix_10(
 endmodule
 
 module	cos_fix_8( 
+	/*
+	* input and output fix point dp = 8
+	* return sig == 1 if y is negative
+	*/
 	y,
 	sig, 
 	x);

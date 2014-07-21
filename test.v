@@ -1,3 +1,10 @@
+/*
+* Test bench
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
 
 `define real [ws - 1:0]
 `define imag [2*ws - 1:ws]

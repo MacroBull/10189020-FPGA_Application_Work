@@ -1,4 +1,14 @@
-module	lcdEnable(
+/*
+* Driver for CFAH1602BTMCJP LCD on DE2-70 board
+* Original by Terasic Technologies Inc. 
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+// 
+
+module	lcdEnable( // LCD on, backlight on, write mode
 	oLCD_ON, oLCD_BLON,
 	oLCD_RW);
 	
@@ -11,7 +21,7 @@ module	lcdEnable(
 	
 endmodule
 
-module	utoa16(
+module	utoa16( // Convert 16-bit unsigned interger to string in length of 5
 	o,
 	i);
 	
@@ -30,7 +40,7 @@ module	utoa16(
 	
 endmodule
 
-module	itoa16(
+module	itoa16( // Convert 16-bit signed interger to string in length of 6
 	o,
 	i);
 	
@@ -54,6 +64,12 @@ module	itoa16(
 endmodule
 
 module	lcdWrite (
+	/* 
+	* Write two lines of 16-byte length string {iString0, iString1} to LCD
+	* The refresh rate depends on LCD itself/the period of the loop
+	* iCLK_50 must be 50MHz clock
+	* lower iRST_N to reset LCD
+	*/
 	oLCD_EN, oLCD_RS,
 	oLCD_D,
 	iCLK_50, iRST_N,
@@ -113,17 +129,17 @@ module	lcdWrite (
 										{oLCD_RS, oLCD_D} <= {1'b1, iString1[index - LCD_LINE2]};
 							endcase
 							
-							mLCD_Start <= 1;
+							mLCD_Start <= 1; // Send start
 							ST <= 1;
 						end
 					1:	begin
-							if (mLCD_Done) begin
+							if (mLCD_Done) begin // got ACK
 								mLCD_Start <= 0;
 								ST <= 2;
 							end
 						end
 					2:	begin
-							if (DLY<18'h3FFFE)
+							if (DLY<18'h3FFFE) // delay > 1.7 ms
 								DLY <= DLY+1;
 							else	begin
 								DLY <= 0;
@@ -136,7 +152,7 @@ module	lcdWrite (
 						end
 				endcase
 			end
-			else index = LCD_CH_LINE1;
+			else index = LCD_CH_LINE1; // back to line1 when line2 done
 		end
 	end
 
@@ -181,19 +197,19 @@ module lcdController (
 			if (iStart) begin
 				case(ST)
 					0:	begin
-							oDone <= 1'b0;
+							oDone <= 1'b0; // Clear ACK
 							ST <= 1;
 						end
 					1:	begin
-							oLCD_EN <= 1'b1;
+							oLCD_EN <= 1'b1; // output Enable
 							ST	 <= 2;
 						end
 					2:	begin
-							if(cnt < clkDiv) cnt <= cnt+1;
+							if(cnt < clkDiv) cnt <= cnt+1; // sync clock
 							else ST  <= 3;
 						end
 					3:	begin
-							oLCD_EN <= 1'b0;
+							oLCD_EN <= 1'b0; // done, return ACK
 							oDone <= 1'b1;
 							cnt <= 0;
 							ST	 <= 0;
@@ -204,29 +220,3 @@ module lcdController (
 	end
 	
 endmodule
-
-// module lcdEnablez(
-// 	oLCD_ON, oLCD_BLON,
-// 	oLCD_RW,
-// 	iEnable);
-// 	
-// 	output	oLCD_ON, oLCD_BLON;
-// 	output	oLCD_RW;
-// 	
-// 	reg	oLCD_ON, oLCD_BLON;
-// 	reg	oLCD_RW;
-// 	
-// 	input	iEnable;
-// 	
-// 	always @(iEnable) begin
-// 		if (iEnable) begin
-// 			oLCD_ON <= 1'b1;
-// 			oLCD_BLON <= 1'b1;
-// 			oLCD_RW <= 1'b0;
-// 		end
-// 		else begin
-// 			oLCD_ON <= 1'b0;
-// 			oLCD_BLON <= 1'b0;
-// 		end
-// 	end
-// endmodule

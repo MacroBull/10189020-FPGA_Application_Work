@@ -1,3 +1,11 @@
+/*
+* VGA time generator module
+* Original by Terasic Technologies Inc. 
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
 module vga_time_generator(
 
 input       pixel_clk,

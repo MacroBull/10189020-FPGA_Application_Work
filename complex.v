@@ -1,3 +1,13 @@
+/*
+* Fix point complex calculation modules
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
+
+
 // complex number:
 // wire [2*ws - 1:0]  = {im, re}
 

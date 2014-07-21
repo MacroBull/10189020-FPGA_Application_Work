@@ -1,3 +1,11 @@
+/*
+* Fix point calculation modules
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
 
 `define fix [ws - 1:0]
 `define int [ws - dp - 1:0]
@@ -59,6 +67,7 @@ module fixMul(
 	
 endmodule
 
+// convert between different integer type, especially for negative numbers
 module	i16to32(
 	o,
 	i);
@@ -83,7 +92,7 @@ module	ishr32_16(
 	assign	o = {i[31]?~16'h0:16'h0,i[31:16]};
 endmodule
 
-module	log2(
+module	log2( // log2(0) == 0
 	o,
 	i);
 	output	[4:0]	o;

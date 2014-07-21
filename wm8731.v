@@ -1,4 +1,17 @@
+/*
+* driver for Wolfson WM8731 audio codec
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
+
 module dacWrite(
+	/*
+	* write stereo data to DAC in master mode + 16bit + right justfied
+	* each channel contains 32 bits data, justfied by SET_FORMAT
+	*/
 	oAUD_DACDAT,
 	iRST_N,
 	iLData, iRData,
@@ -13,30 +26,33 @@ module dacWrite(
 // 	output	reg debug;
 	
 	parameter	ws = 32;
-	parameter	neg_offset = (1 << 15);
 	
 	reg	[ws - 1:0]	dataBuff;
 	reg	[4:0] dataIndex;
 	
-	reg	sync;
+	reg	sync; // use sync register to reset data index every edge of AUD_DACLRCK
 	
 	always @(AUD_DACLRCK) begin
-		dataBuff <= ((AUD_DACLRCK)?iLData:iRData);// | 16'hf000;;//  ^ 16'hfc20;
+		dataBuff <= ((AUD_DACLRCK)?iLData:iRData); // load data to buffer
 	end
 	
 	always @(posedge AUD_BCLK) begin
 		sync <= AUD_DACLRCK;
 		if (sync != AUD_DACLRCK)
-			dataIndex <= 1;
+			dataIndex <= 1; // next index is 1 !!
 		else
 			dataIndex <= dataIndex + 1;
 	end
 	
-	assign	oAUD_DACDAT = dataBuff[~dataIndex];
+	assign	oAUD_DACDAT = dataBuff[~dataIndex];  // MSB first
 	
 endmodule
 
 module adcRead(
+	/*
+	* read stereo data from ADC in master mode + 16bit + right justfied
+	* each channel contains 32 bits data, justfied by SET_FORMAT
+	*/
 	oLData, oRData,
 	iRST_N,
 	iAUD_ADCDAT,
@@ -52,6 +68,7 @@ module adcRead(
 	reg	[ws - 1:0]	oLData, oRData;
 	reg	[ws - 1:0]	dataBuff;
 	
+	// Move buffer to output
 	always @(posedge AUD_ADCLRCK) begin
 		oRData <= dataBuff;// & 16'h0fff;//^ 16'hfc20;
 	end
@@ -60,6 +77,7 @@ module adcRead(
 		oLData <= dataBuff;// & 16'h0fff;// ^ 16'hfc20;
 	end
 	
+	// Shif left to receive data
 	always @(posedge AUD_BCLK or negedge iRST_N) begin
 		if (!iRST_N)
 			dataBuff <= 0;
@@ -71,6 +89,12 @@ module adcRead(
 endmodule
 	
 module wm8731Config (
+	/*
+	* Configure Wolfson WM8731 via I2C
+	* 10~400kHz I2C clock is divided from iCLK_50/50M
+	* The writing hardware address is 0x34
+	* See datasheet about the registers to config the chip
+	*/
 	iCLK_50,
 	iRST_N,
 	I2C_SCLK, I2C_SDAT);
@@ -155,15 +179,15 @@ module wm8731Config (
 	/////////////////////	Config Data LUT	  //////////////////////////	
 	always @(LUT_INDEX) begin
 		case(LUT_INDEX) //	Audio Config Data
-			SET_LIN_L	:	LUT_DATA <= {7'b0000000, 9'b000011111};
-			SET_LIN_R	:	LUT_DATA <= {7'b0000001, 9'b000011111};
- 			A_PATH_CTRL	:	LUT_DATA <= {7'b0000100, 9'b000010010};//16'h08F8; // ---- select DAC
-			D_PATH_CTRL	:	LUT_DATA <= {7'b0000101, 9'b000000111};//16'h0A06; // ---- ADC HPF
-			POWER_ON	:	LUT_DATA <= {7'b0000110, 9'b000000010};//16'h0C00;
-// 			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b000000001};//16'h0E01; // ---- Slave Mode + MSBLJ
-			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b001000000};//16'h0E01; // ---- 16bit + Master Mode + MSBRJ
-// 			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b001001000};//16'h0E01; // ---- 24bit + Master Mode + MSBRJ
-			SAMPLE_CTRL	:	LUT_DATA <= {7'b0001000, 9'b000000000};//16'h1002; // ---- 48 + 48 * 256 @ 12.288MHz
+			SET_LIN_L	:	LUT_DATA <= {7'b0000000, 9'b000011111};// ---- Left LINE IN gain
+			SET_LIN_R	:	LUT_DATA <= {7'b0000001, 9'b000011111};// ---- Right LINE IN gain
+ 			A_PATH_CTRL	:	LUT_DATA <= {7'b0000100, 9'b000010010};// ---- Select DAC
+			D_PATH_CTRL	:	LUT_DATA <= {7'b0000101, 9'b000000111};// ---- ADC HPF
+			POWER_ON	:	LUT_DATA <= {7'b0000110, 9'b000000010};// ---- Disable MIC
+// 			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b000000001};// ---- Slave Mode + MSBLJ
+			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b001000000};// ---- 16bit + Master Mode + MSBRJ
+// 			SET_FORMAT	:	LUT_DATA <= {7'b0000111, 9'b001001000};// ---- 24bit + Master Mode + MSBRJ
+			SAMPLE_CTRL	:	LUT_DATA <= {7'b0001000, 9'b000000000};// ---- 48 + 48 * 256 @ 12.288MHz
 			SET_ACTIVE	:	LUT_DATA <= {7'b0001001, 9'b000000001};//16'h1201;
 			default:		LUT_DATA <= 16'd0 ;
 		endcase

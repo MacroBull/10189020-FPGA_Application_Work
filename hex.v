@@ -1,3 +1,11 @@
+/*
+* 8 segment LED encoding modules
+* This converts unsigned interger to code of common anode 8 segment LED, in 1 digit, 4 digits and 8 digits
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
 
 module hex1(oHex, 
 	iNum);

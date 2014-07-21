@@ -1,4 +1,19 @@
+/*
+* ResetManager module
+* @Author: Macrobull
+* @Project: DE2-70 Audio Effector and Visualization
+* @Date: July 2014
+* @Github: https://github.com/MacroBull/10189020-FPGA_application_work
+*/
+
 module resetManager(
+	/* 
+	* Reset manager can generate reset signal(low) by:
+	* 	power up
+	* 	manually negative edge, e.g. a push button input
+	* 	every period@iCLK
+	* reset pulse width = holdCycles@iCLK
+	*/
 	oRST_N,
 	
 	iCLK,
