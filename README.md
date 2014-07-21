@@ -18,6 +18,8 @@ WOW FPGA Audio Process and Visualization
 不想用IP, 大部分都是自己写的, 定点运算优化起来神烦.
 
 Verilog写出来寄存器用得很多, 需要深入了解.
+
+
 -------------------------------------------------
 
 某人说把波形作为分形图案参数画出来比较酷炫
@@ -29,6 +31,7 @@ Verilog写出来寄存器用得很多, 需要深入了解.
 分形迭代延时严重, 危险时还会影响音频产生毛刺, 需要深入研究.
 
 ** 请不要长时间观看 **
+
 
 -------------------------------------------------
 ![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot0.jpg)
