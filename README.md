@@ -2,7 +2,8 @@
 ======================================
 基于DE2-70的音频处理与可视化系统
 ======================================
-开发板是DE2-70, 主要功能是音频信号处理和可视化, 音频输入是WM8731的line in,  音频输出为其line out, 视频输出是VGA.
+开发板是DE2-70, 主要功能是音频信号处理和可视化, 音频输入是WM8731的Line in,  音频输出为其Line out, 视频输出是VGA.
+
 主要功能包括:
 * 线性音量控制
 * 自动增益控制
@@ -11,6 +12,7 @@
 * 有限冲击响应FIR滤波器(实例/不可在线设计)
 * 简单的不基于FFT的频谱显示
 * 基于分形的音频可视化效果
+
 一些其他辅助功能:
 * 音效旁路
 * LED音量指示
@@ -22,13 +24,16 @@
 
 ------------------------------
 编写语言是Verilog HDL, 部分涉及System Verilog扩展;
+
 部分驱动参考Altera的demo程序
+
 主要程序框架如图:
 ![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/topo.png)
 
 注意
 ------------------------------
 虽然Quartus提供了大量的IP, 但为了锻炼自己, 算法都是自己构想和编写的,
+
 有几个问题尤其需要注意:
 
 1. 定点数运算
@@ -66,28 +71,75 @@
 
 注意, **请勿长时间观看**
 
+10189020-FPGA Application System Design Work
+======================================
+DE2-70 Audio Effector and Visualization
+======================================
+It's on DE2-70, mainly functioning to process effects on audio signal and visualizations of the signal.
+Reads signal from Line-in of WM8931 and outputs to Line-out, video visualization is on VGA interface.
 
-WOW FPGA Audio Process and Visualization
-================
+Main functions:
+* Linear volume control
+* Auto gain control
+* Undersampling effects(phone-like)
+* IIR filters(offline designed instances)
+* FIR filters(offline designed instances)
+* Simple spectrum without FFT
+* Sound-coefficient fractal visualization
 
+Other auxiliary functions:
+* Audio bypass
+* LED sound indicator
+* LCD1602 information display
+* 7seg HEX displaying gain of AGC
+* LED indicator for clocks
+
+To toggle and switch between functions, use the SW 0~7.
+
+------------------------------
+Written in Verilog HDL, with System Verilog;
+The code of controller and driver is partly referred from Altera's demo.
+Framework diagram:
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/topo.png)
+
+Defects
+------------------------------
+Main algorithm is written by myself, though Altera provided many IP in Quartus.
+
+There are things needing attention:
+
+1. Fix point calculation
+
+  The fix point calculation written by myself has some defects in negative number conversion and operation with two different point number.
   
--------------------------------------------------
-不想用IP, 大部分都是自己写的, 定点运算优化起来神烦.
+  Another essential problem is that the coefficient of filter is calculated by truncate the real number of design results, from the simulation we get to know that it changes filters' performance, changing zeroes and poles may effects on stabilization , such is aware of later the project finished.
+  
+  Quartus seems have to use IP for floating calculation, using float may solve many problems.
+  
+2. Clock generating
 
-Verilog写出来寄存器用得很多, 需要深入了解.
+  This FPGA has 4 PLL, to use PLL, IP has to be used.
+  
+  Since no recording and playback is needed, sampling clock is not needed to be precise, here I use a sample rate of 48828.125 Hz, divided from 50 MHz main clock, filters is designed with this sample rate.
+  
+  Fractal calculation cost lots of time, so to lower the pixel clock of VGA for better performance;
+  It is tested that my Philips 224E can display VGA graphics in 640x350@26Hz, which pixel clock is 50 MHz/8, meanwhile 22 iterations can be done.
+  
+  PLL makes clock accurate, however it does not exist in all devices, such design regards PLL unimportant.
+  
+3. Method of calculation
 
+  The amount of calculation is over the capability of Pentium, it is not proper to do calculation immediately/asynchronously, it is better to operate with pipeline, each iteration works on a level, the result is stable after 30 ticks.
 
--------------------------------------------------
+  IP really helps, especially FFT and float number may to the design and better effects.
+  
+Inspiration
+-------------
+Most people may want to realize filters on audio signals after learning control theory or DSP techniques. My roommate thinks it will be psychedelic if fractal is connected with music, which I used to thought to test the performance of FPGA, and, it works !
 
-某人说把波形作为分形图案参数画出来比较酷炫
+The fractal is a kind of [Julia Set](http://en.wikipedia.org/wiki/Julia_set]), it is tested for better visual effects to make the boundary t as variable than C. The shape of the graphic become smooth when t is small and rough when large, when t varies, it present an effect of shutter.
 
-用的是Julia集, 改c 移动太大计算精度又不够, 所以改了迭代阈值
-
-有"快门效果"
-
-分形迭代延时严重, 危险时还会影响音频产生毛刺, 需要深入研究.
-
-** 请不要长时间观看 **
+Caution, **DO NOT WATCH THIS FOR A LONG TIME, MAY HARM**
 
 
 效果/Result
