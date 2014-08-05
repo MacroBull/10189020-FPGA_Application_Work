@@ -67,7 +67,7 @@
 
 嗯, 果真.
 
-分形使用的是[Julia集, 尝试过修改C值](http://en.wikipedia.org/wiki/Julia_set]), 效果不是很好, 后来改成迭代边界t, t小的时候曲线比较平滑, t大的时候比较曲折, 变化时会出现"快门效果"
+分形使用的是[Julia集, 尝试过修改C值](http://en.wikipedia.org/wiki/Julia_set), 效果不是很好, 后来改成迭代边界t, t小的时候曲线比较平滑, t大的时候比较曲折, 变化时会出现"快门效果"
 
 注意, **请勿长时间观看**
 
@@ -112,7 +112,7 @@ There are things needing attention:
 
   The fix point calculation written by myself has some defects in negative number conversion and operation with two different point number.
   
-  Another essential problem is that the coefficient of filter is calculated by truncate the real number of design results, from the simulation we get to know that it changes filters' performance, changing zeroes and poles may effects on stabilization , such is aware of later the project finished.
+  Another essential problem is that the coefficient of filter is calculated by truncating the real number of design results, from the simulation we get to know that it changes filters' performance and changing zeroes and poles may effects on stabilization , such is aware of later the project finished.
   
   Quartus seems have to use IP for floating calculation, using float may solve many problems.
   
@@ -131,15 +131,15 @@ There are things needing attention:
 
   The amount of calculation is over the capability of Pentium, it is not proper to do calculation immediately/asynchronously, it is better to operate with pipeline, each iteration works on a level, the result is stable after 30 ticks.
 
-  IP really helps, especially FFT and float number may to the design and better effects.
+  IP would really help, especially FFT and float number would give a better effects.
   
 Inspiration
 -------------
-Most people may want to realize filters on audio signals after learning control theory or DSP techniques. My roommate thinks it will be psychedelic if fractal is connected with music, which I used to thought to test the performance of FPGA, and, it works !
+Most people may want to realize filters on audio signals after learning control theory or DSP techniques, so this is my realization. My roommate thinks it will be psychedelic if fractal is connected with music, which I used to thought to test the performance of FPGA, and, it works !
 
-The fractal is a kind of [Julia Set](http://en.wikipedia.org/wiki/Julia_set]), it is tested for better visual effects to make the boundary t as variable than C. The shape of the graphic become smooth when t is small and rough when large, when t varies, it present an effect of shutter.
+The fractal is a kind of [Julia Set](http://en.wikipedia.org/wiki/Julia_set), it is tested for better visual effects to make the boundary t as variable than C. The shape of the graphic become smooth when t is small and rough when large, when t varies, it present an effect of shutter.
 
-Caution, **DO NOT WATCH THIS FOR A LONG TIME, MAY HARM**
+Caution, **DO NOT WATCH FRACTAL VISUALIZATION FOR A LONG TIME, IT MAY HARM**
 
 
 效果/Result
