@@ -18,11 +18,13 @@
 * 7段数码管增益显示
 * LED时钟信号调试指示
 
+通过下方开关SW可以切换与开关各项功能.
+
 ------------------------------
 编写语言是Verilog HDL, 部分涉及System Verilog扩展
 部分驱动参考Altera的demo程序
 主要程序框架如图:
-![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/topo.jpg)
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/topo.png)
 
 注意
 ------------------------------
@@ -56,7 +58,13 @@
   
 灵感
 -------------
-写音效器, 均衡器之类的东西, 大抵学过控制和信号处理的人都用这样的想法, 至于分形这个东西, 具体的说是按某一帧的音频波形最大值作为分形的参数进行渲染, 想法是室友提出来的; 本来只是想看看这FPGA性能怎么样能不能做视频处理的运算之类的, 写出来之后室友说如果连上
+写音效器, 均衡器之类的东西, 大抵学过控制和信号处理的人都用这样的想法, 至于分形这个东西, 具体的说是按某一帧的音频波形最大值作为分形的参数进行渲染, 想法是室友提出来的; 本来只是想看看这FPGA性能怎么样能不能做视频处理的运算之类的, 写出来之后室友说如果连上音频的话一定会造成精神污染
+
+嗯, 果真.
+
+分形使用的是[Julia集, 尝试过修改C值](http://en.wikipedia.org/wiki/Julia_set]), 效果不是很好, 后来改成迭代边界t, t小的时候曲线比较平滑, t大的时候比较曲折, 变化时会出现"快门效果"
+
+注意, **请勿长时间观看**
 
 
 WOW FPGA Audio Process and Visualization
@@ -82,7 +90,7 @@ Verilog写出来寄存器用得很多, 需要深入了解.
 ** 请不要长时间观看 **
 
 
-
+效果/Result
 -------------------------------------------------
 ![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot0.jpg)
 ![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/master/shot1.jpg)
