@@ -6,7 +6,6 @@
 * @Github: https://github.com/MacroBull/10189020-FPGA_application_work
 */
 
-
 module dacWrite(
 	/*
 	* write stereo data to DAC in master mode + 16bit + right justfied
@@ -18,33 +17,36 @@ module dacWrite(
 	AUD_DACLRCK, AUD_BCLK
 // 	,debug
 	);
+	
 	output	oAUD_DACDAT;
 	input	iRST_N;
-	input	[ws - 1:0]	iLData, iRData;
+	input	signed [dataws - 1:0]	iLData, iRData;
 	input	AUD_DACLRCK, AUD_BCLK;
 	
 // 	output	reg debug;
 	
-	parameter	ws = 32;
+	parameter	i2sws = 32, dataws = 16;
 	
-	reg	[ws - 1:0]	dataBuff;
+	reg	signed	[i2sws - 1:0]	dataBuff;
 	reg	[4:0] dataIndex;
 	
 	reg	sync; // use sync register to reset data index every edge of AUD_DACLRCK
 	
+	initial dataBuff[i2sws - 1:dataws] = 0;
+	
 	always @(AUD_DACLRCK) begin
-		dataBuff <= ((AUD_DACLRCK)?iLData:iRData); // load data to buffer
+		dataBuff[dataws - 1:0] <= ((AUD_DACLRCK)?iLData:iRData); // load data to buffer
 	end
 	
-	always @(posedge AUD_BCLK) begin
+	always @(negedge AUD_BCLK) begin
 		sync <= AUD_DACLRCK;
-		if (sync != AUD_DACLRCK)
-			dataIndex <= 1; // next index is 1 !!
+		if (sync ^ AUD_DACLRCK)
+			dataIndex <= 5'd30; // next index is +1 !!
 		else
-			dataIndex <= dataIndex + 1;
+			dataIndex <= dataIndex - 5'd1;
 	end
 	
-	assign	oAUD_DACDAT = dataBuff[~dataIndex];  // MSB first
+	assign	oAUD_DACDAT = dataBuff[dataIndex];  // MSB first
 	
 endmodule
 
@@ -58,31 +60,31 @@ module adcRead(
 	iAUD_ADCDAT,
 	AUD_ADCLRCK, AUD_BCLK);
 	
-	output	[ws - 1:0]	oLData, oRData;
+	output	signed	[dataws - 1:0]	oLData, oRData;
 	input	iRST_N;
 	input	iAUD_ADCDAT;
 	input	AUD_ADCLRCK, AUD_BCLK;
 	
-	parameter	ws = 32;
+	parameter	i2sws = 32, dataws = 16, overflow_reduce = 1;
 	
-	reg	[ws - 1:0]	oLData, oRData;
-	reg	[ws - 1:0]	dataBuff;
+	reg	signed	[dataws - 1:0]	oLData, oRData;
+	reg	signed	[i2sws - 1:0]	dataBuff;
 	
 	// Move buffer to output
 	always @(posedge AUD_ADCLRCK) begin
-		oRData <= dataBuff;// & 16'h0fff;//^ 16'hfc20;
+		oRData <= dataBuff[dataws - 1:0];
 	end
 	
 	always @(negedge AUD_ADCLRCK) begin
-		oLData <= dataBuff;// & 16'h0fff;// ^ 16'hfc20;
+		oLData <= dataBuff[dataws - 1:0];
 	end
 	
 	// Shif left to receive data
 	always @(posedge AUD_BCLK or negedge iRST_N) begin
 		if (!iRST_N)
-			dataBuff <= 0;
+			dataBuff <= 32'd0;
 		else begin
-			dataBuff <= {dataBuff[ws - 2 : 0], iAUD_ADCDAT};
+			dataBuff <= {dataBuff[i2sws - 2 : 0], iAUD_ADCDAT};
 		end
 	end
 	
@@ -179,8 +181,8 @@ module wm8731Config (
 	/////////////////////	Config Data LUT	  //////////////////////////	
 	always @(LUT_INDEX) begin
 		case(LUT_INDEX) //	Audio Config Data
-			SET_LIN_L	:	LUT_DATA <= {7'b0000000, 9'b000011111};// ---- Left LINE IN gain
-			SET_LIN_R	:	LUT_DATA <= {7'b0000001, 9'b000011111};// ---- Right LINE IN gain
+			SET_LIN_L	:	LUT_DATA <= {7'b0000000, 9'b000011000};// ---- Left LINE IN gain
+			SET_LIN_R	:	LUT_DATA <= {7'b0000001, 9'b000011000};// ---- Right LINE IN gain
  			A_PATH_CTRL	:	LUT_DATA <= {7'b0000100, 9'b000010010};// ---- Select DAC
 			D_PATH_CTRL	:	LUT_DATA <= {7'b0000101, 9'b000000111};// ---- ADC HPF
 			POWER_ON	:	LUT_DATA <= {7'b0000110, 9'b000000010};// ---- Disable MIC
