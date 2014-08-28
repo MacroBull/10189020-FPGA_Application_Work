@@ -1,3 +1,26 @@
+module	rand_LNRand(
+	oOut,
+	iSeed,
+	iRST_N,
+	iCLK);
+	
+	output	[ws - 1:0]	oOut;
+	input	[ws - 1:0]	iSeed;
+	input	iRST_N;
+	input	iCLK;
+	
+	parameter	ws = 16, M = 65519;
+	
+	reg	[ws - 1:0]	oOut, r;
+	
+	always	@(negedge iRST_N or negedge iCLK) begin
+		if (!iRST_N) r <= iSeed;
+		else begin
+			oOut <= r;
+			r<= ((r << 1)>M)?(r << 1)-M:M-(r << 1);
+		end
+	end
+endmodule
 
 
 module	rand_adc(
