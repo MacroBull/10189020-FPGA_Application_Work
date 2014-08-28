@@ -15,7 +15,7 @@ module test;
 
 	parameter	ws = 16, dp = 8;
 
-	wire signed [15:0] a, b, c;
+	wire [15:0] a, b, c;
 	wire signed [31:0] l, m, n;
 
 	reg signed [15:0] e, f, g;
@@ -31,7 +31,7 @@ module test;
 // 		$monitor("%d, %d", z, w, x);
 		$monitor("%d, %d", e, a);
 		
-		#10 e = -32760;
+		#10 e = -1;
 		#10 e = 0;
 		#10 e = 1;
 		
@@ -47,6 +47,6 @@ module test;
 	
 // 	fi_fix2int	op0(a[7:0], z);
 // 	fi_div	op1(x, z, w);
-	int_redAbs op2(a, e);
+	int_norm op2(a, e);
 	
 endmodule

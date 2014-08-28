@@ -1,0 +1,379 @@
+Flow report for top
+Fri Aug 29 03:47:22 2014
+Quartus II 64-Bit Version 13.0.0 Build 156 04/24/2013 SJ Full Version
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Flow Summary
+  3. Flow Settings
+  4. Flow Non-Default Global Settings
+  5. Flow Elapsed Time
+  6. Flow OS Summary
+  7. Flow Log
+  8. Flow Messages
+  9. Flow Suppressed Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 1991-2013 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+
+
+
++----------------------------------------------------------------------------------+
+; Flow Summary                                                                     ;
++------------------------------------+---------------------------------------------+
+; Flow Status                        ; Successful - Fri Aug 29 03:47:22 2014       ;
+; Quartus II 64-Bit Version          ; 13.0.0 Build 156 04/24/2013 SJ Full Version ;
+; Revision Name                      ; top                                         ;
+; Top-level Entity Name              ; top                                         ;
+; Family                             ; Cyclone II                                  ;
+; Device                             ; EP2C70F896C6                                ;
+; Timing Models                      ; Final                                       ;
+; Total logic elements               ; 17,775 / 68,416 ( 26 % )                    ;
+;     Total combinational functions  ; 15,137 / 68,416 ( 22 % )                    ;
+;     Dedicated logic registers      ; 2,641 / 68,416 ( 4 % )                      ;
+; Total registers                    ; 2641                                        ;
+; Total pins                         ; 182 / 622 ( 29 % )                          ;
+; Total virtual pins                 ; 0                                           ;
+; Total memory bits                  ; 0 / 1,152,000 ( 0 % )                       ;
+; Embedded Multiplier 9-bit elements ; 32 / 300 ( 11 % )                           ;
+; Total PLLs                         ; 0 / 4 ( 0 % )                               ;
++------------------------------------+---------------------------------------------+
+
+
++-----------------------------------------+
+; Flow Settings                           ;
++-------------------+---------------------+
+; Option            ; Setting             ;
++-------------------+---------------------+
+; Start date & time ; 08/29/2014 03:44:25 ;
+; Main task         ; Compilation         ;
+; Revision Name     ; top                 ;
++-------------------+---------------------+
+
+
++--------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                               ;
++--------------------------------------------------------------------------------+
+Assignment Name : AUTO_MERGE_PLLS
+Value           : Off
+Default Value   : On
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : AUTO_PACKED_REGISTERS_STRATIXII
+Value           : Off
+Default Value   : Auto
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : COMPILER_SIGNATURE_ID
+Value           : 0.140925506523647
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : CYCLONEII_OPTIMIZATION_TECHNIQUE
+Value           : Area
+Default Value   : Balanced
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : EDA_OUTPUT_DATA_FORMAT
+Value           : Verilog Hdl
+Default Value   : --
+Entity Name     : --
+Section Id      : eda_simulation
+
+Assignment Name : EDA_SIMULATION_TOOL
+Value           : Custom Verilog HDL
+Default Value   : <None>
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : EDA_TIME_SCALE
+Value           : 1 ps
+Default Value   : --
+Entity Name     : --
+Section Id      : eda_simulation
+
+Assignment Name : ENABLE_DRC_SETTINGS
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : ENABLE_SIGNALTAP
+Value           : Off
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : FINAL_PLACEMENT_OPTIMIZATION
+Value           : Never
+Default Value   : Automatically
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : FITTER_EFFORT
+Value           : Fast Fit
+Default Value   : Auto Fit
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : FIT_ONLY_ONE_ATTEMPT
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : FLOW_ENABLE_IO_ASSIGNMENT_ANALYSIS
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : IGNORE_PARTITIONS
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : MAX_CORE_JUNCTION_TEMP
+Value           : 85
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : MIN_CORE_JUNCTION_TEMP
+Value           : 0
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : OPTIMIZE_POWER_DURING_FITTING
+Value           : Off
+Default Value   : Normal compilation
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : OPTIMIZE_TIMING
+Value           : Off
+Default Value   : Normal compilation
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : PARTITION_COLOR
+Value           : 16764057
+Default Value   : --
+Entity Name     : --
+Section Id      : Top
+
+Assignment Name : PARTITION_FITTER_PRESERVATION_LEVEL
+Value           : PLACEMENT_AND_ROUTING
+Default Value   : --
+Entity Name     : --
+Section Id      : Top
+
+Assignment Name : PARTITION_NETLIST_TYPE
+Value           : SOURCE
+Default Value   : --
+Entity Name     : --
+Section Id      : Top
+
+Assignment Name : PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : PHYSICAL_SYNTHESIS_EFFORT
+Value           : Fast
+Default Value   : Normal
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : POWER_BOARD_THERMAL_MODEL
+Value           : None (CONSERVATIVE)
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : POWER_PRESET_COOLING_SOLUTION
+Value           : 23 MM HEAT SINK WITH 200 LFPM AIRFLOW
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : POWER_USE_DEVICE_CHARACTERISTICS
+Value           : MAXIMUM
+Default Value   : TYPICAL
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : PROJECT_OUTPUT_DIRECTORY
+Value           : output_files
+Default Value   : --
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : ROUTER_TIMING_OPTIMIZATION_LEVEL
+Value           : MINIMUM
+Default Value   : Normal
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : SAVE_DISK_SPACE
+Value           : Off
+Default Value   : On
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : SMART_RECOMPILE
+Value           : On
+Default Value   : Off
+Entity Name     : --
+Section Id      : --
+
+Assignment Name : TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS
+Value           : Off
+Default Value   : On
+Entity Name     : --
+Section Id      : --
++--------------------------------------------------------------------------------+
+
+
+
++--------------------------------------------------------------------------------+
+; Flow Elapsed Time                                                              ;
++--------------------------------------------------------------------------------+
+Module Name                        : Analysis & Synthesis
+Elapsed Time                       : 00:01:07
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 650 MB
+Total CPU Time (on all processors) : 00:01:05
+
+Module Name                        : I/O Assignment Analysis
+Elapsed Time                       : 00:00:11
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 1007 MB
+Total CPU Time (on all processors) : 00:00:09
+
+Module Name                        : Fitter
+Elapsed Time                       : 00:00:37
+Average Processors Used            : 1.4
+Peak Virtual Memory                : 918 MB
+Total CPU Time (on all processors) : 00:00:51
+
+Module Name                        : Assembler
+Elapsed Time                       : 00:00:06
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 590 MB
+Total CPU Time (on all processors) : 00:00:05
+
+Module Name                        : TimeQuest Timing Analyzer
+Elapsed Time                       : 00:00:12
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 779 MB
+Total CPU Time (on all processors) : 00:00:11
+
+Module Name                        : Design Assistant
+Elapsed Time                       : 00:00:05
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 869 MB
+Total CPU Time (on all processors) : 00:00:05
+
+Module Name                        : EDA Netlist Writer
+Elapsed Time                       : 00:00:10
+Average Processors Used            : 1.0
+Peak Virtual Memory                : 943 MB
+Total CPU Time (on all processors) : 00:00:10
+
+Module Name                        : Total
+Elapsed Time                       : 00:02:28
+Average Processors Used            : --
+Peak Virtual Memory                : --
+Total CPU Time (on all processors) : 00:02:36
++--------------------------------------------------------------------------------+
+
+
+
++--------------------------------------------------------------------------------+
+; Flow OS Summary                                                                ;
++--------------------------------------------------------------------------------+
+Module Name      : Analysis & Synthesis
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : I/O Assignment Analysis
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : Fitter
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : Assembler
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : TimeQuest Timing Analyzer
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : Design Assistant
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
+
+Module Name      : EDA Netlist Writer
+Machine Hostname : Macrobull-x230
+OS Name          : SUSE LINUX
+OS Version       : 13
+Processor type   : x86_64
++--------------------------------------------------------------------------------+
+
+
+
+------------
+; Flow Log ;
+------------
+quartus_map --read_settings_files=on --write_settings_files=off work -c top
+quartus_fit --read_settings_files=off --write_settings_files=off work -c top --check_ios
+quartus_fit --read_settings_files=off --write_settings_files=off work -c top
+quartus_asm --read_settings_files=off --write_settings_files=off work -c top
+quartus_sta work -c top
+quartus_drc --read_settings_files=off --write_settings_files=off work -c top
+quartus_eda --read_settings_files=off --write_settings_files=off work -c top
+
+
+

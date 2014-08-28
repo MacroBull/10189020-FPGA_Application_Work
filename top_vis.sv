@@ -103,18 +103,19 @@ module top(
 	`define	KEY_VOL_UP	iKEY[1]
 	`define	KEY_VOL_DOWN	iKEY[0]
 	
-	`define	SW_AUDIO_BYPASS	iSW[0]
-	`define	SW_AUDIO_LED_INDICATOR_CHN	iSW[1]
-	`define	SW_DSP_FILTER_CLK	iSW[2]
-	`define	SW_DSP_VOL_OR_AGC	iSW[3]
-	`define	SW_DSP_FIR_OR_IIR	iSW[4]
-	`define	SW_DSP_IIR_SW0	iSW[5]
-	`define	SW_DSP_IIR_SW1	iSW[6]
-	//iSW[7] seems to have a pin assignment error
-	`define	SW_DSP_FIR_DISPLAY	iSW[8]
-	
-	`define	SW_VIDEO_FRACTAL_ENABLE	iSW[16]
-	`define	SW_LCD_LOCK	iSW[17]
+	`define	SW_AUDIO_BYPASS	iSW[17]
+ 	`define	SW_AUDIO_LED_INDICATOR_CHN	iSW[16]
+// 	`define	SW_AUDIO_BYPASS	iSW[0]
+// 	`define	SW_DSP_FILTER_CLK	iSW[2]
+// 	`define	SW_DSP_VOL_OR_AGC	iSW[3]
+// 	`define	SW_DSP_FIR_OR_IIR	iSW[4]
+// 	`define	SW_DSP_IIR_SW0	iSW[5]
+// 	`define	SW_DSP_IIR_SW1	iSW[6]
+// 	//iSW[7] seems to have a pin assignment error
+// 	`define	SW_DSP_FIR_DISPLAY	iSW[8]
+// 	
+// 	`define	SW_VIDEO_FRACTAL_ENABLE	iSW[16]
+// 	`define	SW_LCD_LOCK	iSW[17]
 	
 
 	`define	LED_RESET oLEDG[8]
@@ -181,7 +182,7 @@ module top(
 		((`SW_AUDIO_LED_INDICATOR_CHN)?iL:iR):((`SW_AUDIO_LED_INDICATOR_CHN)?oL:oR));
 	
 // 	assign	oL = -iL;
-// 	assign	oR = -iR;
+// 	assign	oR = -iR;u
 
 // 	assign	oR = y0;
 // 
@@ -195,7 +196,7 @@ module top(
 // 	end
 
 	//////////////Video/////////////////////
-	// Configure VGA output as 640x360@30Hz (on my Philips is 640x350@26Hz)
+	// Configure VGA output as 640x360@28Hz (on my Philips is 640x350@26Hz)
 	// Alternative VGA profile is 1280x720, 640x480, 720x400
 	// Choose for the demand of your monitor
 	
@@ -204,7 +205,7 @@ module top(
 	wire	mVGA_VS, mVGA_HS; // Vsync wire
 	wire	`coord	mVGA_X, mVGA_Y;
 	
-	/// 640x360 @8.75MHz = 50 /6
+	/// 640x360 @8.33MHz = 50 /6
 	always @(posedge iCLK_50) begin
 		if (VGAClkDiv == 2) begin
 			mVGA_CLK <= ~mVGA_CLK;
@@ -262,77 +263,87 @@ module top(
 		
 	/////////////Video Effects////////////////
 	
-	wire	`peak	aL, aR, pvL, pvR, phL, phR;
+	wire	`peak	aL, aR, pvL, pvR;
+	wire	`audio	 phL, phR;
 	wire	[3:0]	lL, lR;
 	
-	int_redAbs	op10(aL, rL);
+	// Amplitude(reduced)
+	int_redAbs	op10(aL, rL); 
 	int_redAbs	op11(aR, rR);
 	
+	// Log2(Amp)
 	uint15_log2	op12(lL, aL);
 	uint15_log2	op13(lR, aR);
 	
+	// Hold by VSync (per frame)
 	dsp_peakHolder	op14(pvL, aL, iAUD_ADCDAT, mVGA_VS);
 	dsp_peakHolder	op15(pvR, aR, iAUD_ADCDAT, mVGA_VS);
 	 
-	dsp_peakHolder	op16(phL, aL, iAUD_ADCDAT, mVGA_HS);
-	dsp_peakHolder	op17(phR, aR, iAUD_ADCDAT, mVGA_HS);
-	
-// 	visual_foggy	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, (iSW[17]?iSW[16]?pL:aL:rL) >>10, (iSW[17]?iSW[16]?pR:aR:rR)>>10);
+	// Hold by HSync (per line)
+	dsp_waveHolder	op16(phL, rL, iAUD_ADCDAT, mVGA_HS);
+	dsp_waveHolder	op17(phR, rR, iAUD_ADCDAT, mVGA_HS);
 
 // 	visual_shadingLevelWaves	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
 // 		(lL - 10) << 2, (lR - 10)<< 2);
-// 	visual_foggy	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		aL >> 10, aR >> 10);
-// 	visual_shadingLevelWaves	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		phL >> 10, phR >> 10);
 
-	
-// 	visual_peak_log vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		pvL, pvR, mVGA_VS);
+	visual_shadingLevelWaves	vsp00(v0R, v0G, v0B, mVGA_X, mVGA_Y, 
+		phL >>> 11, phR >>> 11);
 
-// 	visual_freePainting	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		pvL, pvR, mCLK_50Div[3], mVGA_VS);
-		
-// 	visual_block	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		pvL, pvR, mVGA_HS, mVGA_VS);
+	visual_wave_vertical vsp10(v1R, v1G, v1B, mVGA_X, mVGA_Y, 
+		phL, phR, mVGA_HS);
 
-// 	visual_tablecloth vsp8(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
-// 		pvL, pvR, mVGA_VS);
-
-	visual_tablecloth_color vsp8(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
+	visual_peak_progression vsp24(v2R, v2G, v2B, mVGA_X, mVGA_Y, 
 		pvL, pvR, mVGA_VS);
-	
-	
-	assign	oL = iSW[16]?phL:rL;
-	assign	oR = iSW[16]?phR:rR;
-	
-endmodule
+		
+	visual_peak_log vsp28(v3R, v3G, v3B, mVGA_X, mVGA_Y, 
+		pvL, pvR, mVGA_VS);
 
-`define	vgaVersEdge	negedge
+	visual_freePainting	vsp30(v4R, v4G, v4B, mVGA_X, mVGA_Y, 
+		mCLK_50Div[3], mVGA_VS);
+		
+	visual_blocks	vsp40(v5R, v5G, v5B, mVGA_X, mVGA_Y, 
+		pvL, pvR, mVGA_CLK, mVGA_VS);
 
-module	dsp_peakHolder(
-	oOut,
-	iIn,
-	iiCLK, ioCLK
-	);
+	visual_franticStripes	vsp41(v6R, v6G, v6B, mVGA_X, mVGA_Y, 
+		pvL, pvR, mCLK_50Div[9], mVGA_VS);
+
+	visual_tablecloth vsp50(v7R, v7G, v7B, mVGA_X, mVGA_Y, 
+		pvL, pvR, mVGA_VS);
+
+	visual_tablecloth_color vsp51(v8R, v8G, v8B, mVGA_X, mVGA_Y, 
+		pvL, pvR, mVGA_VS);
+		
+	wire	`color	
+		v0R, v1R, v2R, v3R, v4R, v5R, v6R, v7R, v8R,
+		v0G, v1G, v2G, v3G, v4G, v5G, v6G, v7G, v8G,
+		v0B, v1B, v2B, v3B, v4B, v5B, v6B, v7B, v8B;
 	
-	output	reg	`peak	oOut;
-	input	`peak	iIn;
-	input	iiCLK, ioCLK;
+	assign	oVGA_R = 
+		(iSW[4:1] == 0)?v0R:
+		(iSW[4:1] == 1)?v1R:
+		(iSW[4:1] == 2)?(iSW[0])?v2R:v3R:
+		(iSW[4:1] == 3)?v4R:
+		(iSW[4:1] == 4)?(iSW[0])?v5R:v6R:
+		(iSW[0])?v7R:v8R;
+	assign	oVGA_G = 
+		(iSW[4:1] == 0)?v0G:
+		(iSW[4:1] == 1)?v1G:
+		(iSW[4:1] == 2)?(iSW[0])?v2G:v3G:
+		(iSW[4:1] == 3)?v4G:
+		(iSW[4:1] == 4)?(iSW[0])?v5G:v6G:
+		(iSW[0])?v7G:v8G;
+	assign	oVGA_B = 
+		(iSW[4:1] == 0)?v0B:
+		(iSW[4:1] == 1)?v1B:
+		(iSW[4:1] == 2)?(iSW[0])?v2B:v3B:
+		(iSW[4:1] == 3)?v4B:
+		(iSW[4:1] == 4)?(iSW[0])?v5B:v6B:
+		(iSW[0])?v7B:v8B;
+		
 	
-	reg	`peak	mMax;
-	reg	moCLK_prev;
-	
-	always @(negedge iiCLK) begin
-		moCLK_prev <= ioCLK;
-		if ({moCLK_prev,ioCLK} == 2'b10) begin
-			oOut <= mMax;
-			mMax <= iIn; 
-		end
-		else begin
-			if (iIn>mMax) mMax <= iIn;
-		end
-	end
+	// Try undersampling? XD
+	assign	oL = iSW[15]?phL:rL;
+	assign	oR = iSW[15]?phR:rR;
 	
 endmodule
 
