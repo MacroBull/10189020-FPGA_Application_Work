@@ -79,7 +79,7 @@ module visual_wave_vertical(
 // 	assign	oR = (iX <= mL)?499:0;
 // 	assign	oG = (iX <= mR)?499:0;
 // 	assign	oB = (iX[7:0]==0)?999:((iX % iY) + (iY % iX));
-	assign	oB = ((iX==192)|(iX==448))?199:((iX % iY) + (iY % iX));
+	assign	oB = ((iX==192)|(iX==448))?699:((iX % iY) + (iY % iX));
 // 	assign	oB = ((iX==256)|(iX==384))?999:((iX % iY) + (iY % iX));
 	
 endmodule
@@ -88,19 +88,22 @@ module visual_peak_progression(
 	oR, oG, oB,
 	iX, iY,
 	iL, iR,
-	iBCLK
+	iBCLK,
+	iEnableInterp
 	);
 	
 	output	`color oR, oG, oB;
 	input	`coord iX, iY;
 	input	`peak iL, iR;
-	input	iBCLK;
+	input	iBCLK, iEnableInterp;
 	
 	parameter	seqLen = 64;
 	
 	reg	[seqLen - 1:0][6:0]	xL, xR;
 	reg	[5:0] p;
 	reg	[3:0] alpha;
+	reg	[6:0]	intL, intR;
+	
 	
 	always @(negedge iBCLK) begin
 		xL = {xL[seqLen - 2:0], iL[14:8]};
@@ -108,14 +111,16 @@ module visual_peak_progression(
 	end
 	
 	assign p = (576 - iX) >> 3;
+	int_interpolate_sinc8x2_16	op1(intL, 576 - iX, xL[p-1], xL[p], xL[p+1], xL[p+2]);
+	int_interpolate_sinc8x2_16	op2(intR, 576 - iX, xR[p-1], xR[p], xR[p+1], xR[p+2]);
 	
 	uint15_log2 op0(alpha, iX*22);
 	
 	parameter	ypL = 10'd160, ypR = 10'd320;
 	
-	assign	oR = ((iX>=64)&(iX<576)&(iY<ypL)&(iY>ypL-xL[p]))?
+	assign	oR = ((iX>=64)&(iX<576)&(iY<ypL)&(iY>ypL-(iEnableInterp?intL:xL[p])))?
 		(xL[p] + iX - 24 >> 3)*alpha:0;
-	assign	oG = ((iX>=64)&(iX<576)&(iY<ypR)&(iY>ypR-xR[p]))?
+	assign	oG = ((iX>=64)&(iX<576)&(iY<ypR)&(iY>ypR-(iEnableInterp?intR:xR[p])))?
 		(xR[p] + iX - 24 >> 3)*alpha:0;
 	assign	oB = (iX % iY) + (iY % iX);
 	
@@ -125,13 +130,14 @@ module visual_peak_log(
 	oR, oG, oB,
 	iX, iY,
 	iL, iR,
-	iBCLK
+	iBCLK,
+	iEnableInterp
 	);
 	
 	output	`color oR, oG, oB;
 	input	`coord iX, iY;
 	input	`peak iL, iR;
-	input	iBCLK;
+	input	iBCLK, iEnableInterp;
 	
 	parameter	seqLen = 64;
 	
@@ -139,6 +145,7 @@ module visual_peak_log(
 	reg	[5:0] p;
 	reg	[31:0] m32L, m32R;
 	reg	[4:0] lL, lR;
+	reg	[7:0]	intL, intR;
 	
 	parameter	scale = 32'd4000;
 	
@@ -154,12 +161,15 @@ module visual_peak_log(
 	end
 	
 	assign p = (576 - iX) >> 3;
+	int_interpolate_sinc8x2_16	op2(intL, 576 - iX, xL[p-1]*11, xL[p]*11, xL[p+1]*11, xL[p+2]*11);
+	int_interpolate_sinc8x2_16	op3(intR, 576 - iX, xR[p-1]*11, xR[p]*11, xR[p+1]*11, xR[p+2]*11);
+	
 	
 	parameter	ypL = 10'd160, ypR = 10'd320;
 	
-	assign	oR = ((iX>=64)&(iX<576)&(iY<ypL)&(iY>ypL-xL[p]*11))?
+	assign	oR = ((iX>=64)&(iX<576)&(iY<ypL)&(iY>ypL-(iEnableInterp?intL:xL[p]*11)))?
 		(xL[p]+16)*((iX-64)>>4):0;
-	assign	oG = ((iX>=64)&(iX<576)&(iY<ypR)&(iY>ypR-xR[p]*11))?
+	assign	oG = ((iX>=64)&(iX<576)&(iY<ypR)&(iY>ypR-(iEnableInterp?intR:xR[p]*11)))?
 		(xL[p]+16)*((iX-64)>>4):0;
 	assign	oB = (iX % iY) + (iY % iX);
 	
@@ -345,8 +355,10 @@ module visual_tablecloth_color( // using abs
 	parameter	WID = 640, HEI = 360;  // Screen definition
 	parameter	WD2 = WID/2, WM2 = WID * 2;
 	parameter	HD2 = HEI/2, HM2 = HEI * 2;
-	parameter	PL = 115, PR = 525, CY = 260; // Wave origins
+	parameter	PL = 112, PR = 528, CY = 260; // Wave origins
 	parameter	SPF = 26*2; // Step per frame
+	parameter	CSOFF = 600;
+	parameter	SCALE = 3;
 	
 	output	`color oR, oG, oB;
 	input	`coord iX, iY;
@@ -366,16 +378,29 @@ module visual_tablecloth_color( // using abs
 	
 	
 	wire	[31:0]	s, vx, vy;
-	wire	`coord	dL, dR, dxL, dxR, dy, y;
+	wire	`coord	 sL, sR, dxL, dxR, dy, y;
+	wire	[7:0]	dL, dR, ddL, ddR;
 	
 	assign	dxL = iX>PL?iX-PL:PL-iX;
 	assign	dxR = iX>PR?iX-PR:PR-iX;
 	assign	dy = iY>CY?iY-CY:CY-iY;
-	int_sqrt_cmp10 op0(dL, (dxL*dxL + dy*dy*4) >> 9);
-	int_sqrt_cmp10 op1(dR, (dxR*dxR + dy*dy*4) >> 9);
+	
+	assign	sL = (dxL*dxL + dy*dy*4 + CSOFF) >> 9;
+	assign	sR = (dxR*dxR + dy*dy*4 + CSOFF) >> 9;
+	assign	ddL = ((sL - dL*dL)<<3)/(dL+dL+1);
+	assign	ddR = ((sR - dR*dR)<<3)/(dR+dR+1);
+	int_sqrt_cmp10 op0(dL, sL);
+	int_sqrt_cmp10 op1(dR, sR);
+	
+	reg	`peak	intL, intR;
+	int_interpolate_sinc8x2_16	op2(intL, ddL, xL[dL-1], xL[dL], xL[dL+1], xL[dL+2]);
+	int_interpolate_sinc8x2_16	op3(intR, ddR, xR[dR-1], xR[dR], xR[dR+1], xR[dR+2]);
+	
 	
 	assign	s = MAXINT/(iY+ ELEVATION);
-	assign	y = (xL[dL] / (10'd4 + dL) + xR[dR] / (10'd4 + dR) ) >> 10'd5;
+	assign	y = (intL / ((dL<<3)+ddL+10'd15) + intR / ((dR<<3)+ddR+10'd15) ) >> SCALE;
+// 	assign	y = (intL  + intR ) >> SCALE;
+// 	assign	y = (xL[dL] / (10'd4 + dL) + xR[dR] / (10'd4 + dR) ) >> 10'd5;
 	assign	vx = frcnt + (iX+WID+y)*s;
 	assign	vy = frcnt + (WM2-iX+y)*s;
 	

@@ -98,13 +98,15 @@ module top(
 	
 	// ws means word size
 	
-	`define	KEY_RESET	iKEY[3]
-	`define	KEY_FIR_PRESET_CHANGE	iKEY[2]
-	`define	KEY_VOL_UP	iKEY[1]
-	`define	KEY_VOL_DOWN	iKEY[0]
+	`define	KEY_RESET	(iKEY[3])
+	`define	KEY_FIR_PRESET_CHANGE	(iKEY[2])
+	`define	KEY_VOL_UP	(iKEY[1])
+	`define	KEY_VOL_DOWN	(iKEY[0])
 	
-	`define	SW_AUDIO_BYPASS	iSW[17]
- 	`define	SW_AUDIO_LED_INDICATOR_CHN	iSW[16]
+	`define	SW_AUDIO_BYPASS	(iSW[17])
+ 	`define	SW_AUDIO_LED_INDICATOR_CHN	(iSW[16])
+ 	`define	SW_AUDIO_UNDERSAMPLEING	(iSW[15])
+ 	`define	SW_VIS_INTERP	(iSW[14])
 // 	`define	SW_AUDIO_BYPASS	iSW[0]
 // 	`define	SW_DSP_FILTER_CLK	iSW[2]
 // 	`define	SW_DSP_VOL_OR_AGC	iSW[3]
@@ -285,6 +287,15 @@ module top(
 
 // 	visual_shadingLevelWaves	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
 // 		(lL - 10) << 2, (lR - 10)<< 2);
+	
+// 	visual_peak_log vsp24(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
+// 		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
+		
+// 	visual_tablecloth_color vsp51(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
+// 		pvL, pvR, mVGA_VS);
+
+// 	visual_peak_progression vsp24(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
+// 		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
 
 	visual_shadingLevelWaves	vsp00(v0R, v0G, v0B, mVGA_X, mVGA_Y, 
 		phL >>> 11, phR >>> 11);
@@ -293,10 +304,10 @@ module top(
 		phL, phR, mVGA_HS);
 
 	visual_peak_progression vsp24(v2R, v2G, v2B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS);
+		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
 		
 	visual_peak_log vsp28(v3R, v3G, v3B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS);
+		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
 
 	visual_freePainting	vsp30(v4R, v4G, v4B, mVGA_X, mVGA_Y, 
 		mCLK_50Div[3], mVGA_VS);
@@ -319,31 +330,31 @@ module top(
 		v0B, v1B, v2B, v3B, v4B, v5B, v6B, v7B, v8B;
 	
 	assign	oVGA_R = 
-		(iSW[4:1] == 0)?v0R:
-		(iSW[4:1] == 1)?v1R:
-		(iSW[4:1] == 2)?(iSW[0])?v2R:v3R:
-		(iSW[4:1] == 3)?v4R:
-		(iSW[4:1] == 4)?(iSW[0])?v5R:v6R:
+		(iSW[3:1] == 0)?v0R:
+		(iSW[3:1] == 1)?v1R:
+		(iSW[3:1] == 2)?(iSW[0])?v3R:v2R:
+		(iSW[3:1] == 3)?v4R:
+		(iSW[3:1] == 4)?(iSW[0])?v5R:v6R:
 		(iSW[0])?v7R:v8R;
 	assign	oVGA_G = 
-		(iSW[4:1] == 0)?v0G:
-		(iSW[4:1] == 1)?v1G:
-		(iSW[4:1] == 2)?(iSW[0])?v2G:v3G:
-		(iSW[4:1] == 3)?v4G:
-		(iSW[4:1] == 4)?(iSW[0])?v5G:v6G:
+		(iSW[3:1] == 0)?v0G:
+		(iSW[3:1] == 1)?v1G:
+		(iSW[3:1] == 2)?(iSW[0])?v3G:v2G:
+		(iSW[3:1] == 3)?v4G:
+		(iSW[3:1] == 4)?(iSW[0])?v5G:v6G:
 		(iSW[0])?v7G:v8G;
 	assign	oVGA_B = 
-		(iSW[4:1] == 0)?v0B:
-		(iSW[4:1] == 1)?v1B:
-		(iSW[4:1] == 2)?(iSW[0])?v2B:v3B:
-		(iSW[4:1] == 3)?v4B:
-		(iSW[4:1] == 4)?(iSW[0])?v5B:v6B:
+		(iSW[3:1] == 0)?v0B:
+		(iSW[3:1] == 1)?v1B:
+		(iSW[3:1] == 2)?(iSW[0])?v3B:v2B:
+		(iSW[3:1] == 3)?v4B:
+		(iSW[3:1] == 4)?(iSW[0])?v5B:v6B:
 		(iSW[0])?v7B:v8B;
 		
 	
 	// Try undersampling? XD
-	assign	oL = iSW[15]?phL:rL;
-	assign	oR = iSW[15]?phR:rR;
+	assign	oL = `SW_AUDIO_UNDERSAMPLEING?phL:rL;
+	assign	oR = `SW_AUDIO_UNDERSAMPLEING?phR:rR;
 	
 endmodule
 
