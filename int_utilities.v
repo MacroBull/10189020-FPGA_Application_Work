@@ -206,10 +206,10 @@ module	int_sqrt_UAD(
 	
 	reg	[15:0]	t, my;
 	
-	initial	begin
-// 		$monitor("( %d,	%d\t)\t| %d	%d	%d", iCTRL,t,x,my,y);
-		t = 0;
-	end
+// 	initial	begin
+// // 		$monitor("( %d,	%d\t)\t| %d	%d	%d", iCTRL,t,x,my,y);
+// 		t = 0;
+// 	end
 	
 	always	@(negedge iCLK) begin
 		if (0 == t) begin
