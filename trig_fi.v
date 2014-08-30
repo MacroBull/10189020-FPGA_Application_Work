@@ -21,12 +21,14 @@ module	fi_sin_10(
 	parameter	per = 3142;
 	
 	wire	signed	[dp:0]	mx;
+	wire	signed	[31:0]	mx2;
 	
-	assign sig = (x / per);//[0];
+// 	assign sig = (x / per);//[0];
+	assign	mx2 = mx * mx;
 	
 	assign mx = (x % per > per /2) ? (per - x % per) : x % per;
 	
-	assign y = mx + (mx * mx / 35888) - (( mx * mx * mx / 6 ) >>> (dp * 2));
+	assign y = mx + (mx2 / 35888) - (( mx2 * mx / 6 ) >>> (dp * 2));
 	
 endmodule
 
@@ -36,22 +38,23 @@ module	cos_fix_8(
 	* return sig == 1 if y is negative
 	*/
 	y,
-	sig, 
+// 	sig, 
 	x);
 	
-	output	[dp - 1:0]	y;
-	output	sig;
-	input	[31:0]	x;
+	output	signed	[dp - 1:0]	y;
+// 	output	sig;
+	input	signed	[31:0]	x;
 	
 	parameter	dp = 8;
 	parameter	per = 804;
 	
 	wire	[dp:0]	mx;
+	wire	signed	[31:0]	mx2;
 	
 	assign sig = (x / per) ^ (x / (per/2));//[0];
 	
 	assign mx = (x % per > per /2) ? (per - x % per) : x % per;
 	
-	assign y = (1 << dp) - 1 - (mx / 100) - ((mx * mx / 2) >> dp) + ((mx * (mx * mx * mx / 24)) >> (dp * 3));
+	assign y = (1 << dp) - 1 - (mx / 100) - ((mx2 / 2) >> dp) + ((mx * (mx2 * mx / 24)) >> (dp * 3));
 	
 endmodule

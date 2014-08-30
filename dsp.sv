@@ -13,7 +13,7 @@
 
 `define	vgaVersEdge	negedge
 
-module	dsp_peakHolder(
+module	dsp_peakHolder_max(
 	oOut,
 	iIn,
 	iiCLK, ioCLK
@@ -39,7 +39,7 @@ module	dsp_peakHolder(
 	
 endmodule
 
-module	dsp_waveHolder(
+module	dsp_waveHolder_max(
 	oOut,
 	iIn,
 	iiCLK, ioCLK

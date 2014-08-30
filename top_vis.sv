@@ -278,12 +278,12 @@ module top(
 	uint15_log2	op13(lR, aR);
 	
 	// Hold by VSync (per frame)
-	dsp_peakHolder	op14(pvL, aL, iAUD_ADCDAT, mVGA_VS);
-	dsp_peakHolder	op15(pvR, aR, iAUD_ADCDAT, mVGA_VS);
+	dsp_peakHolder_max	op14(pvL, aL, iAUD_ADCDAT, mVGA_VS);
+	dsp_peakHolder_max	op15(pvR, aR, iAUD_ADCDAT, mVGA_VS);
 	 
 	// Hold by HSync (per line)
-	dsp_waveHolder	op16(phL, rL, iAUD_ADCDAT, mVGA_HS);
-	dsp_waveHolder	op17(phR, rR, iAUD_ADCDAT, mVGA_HS);
+	dsp_waveHolder_max	op16(phL, rL, iAUD_ADCDAT, mVGA_HS);
+	dsp_waveHolder_max	op17(phR, rR, iAUD_ADCDAT, mVGA_HS);
 
 // 	visual_shadingLevelWaves	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
 // 		(lL - 10) << 2, (lR - 10)<< 2);
