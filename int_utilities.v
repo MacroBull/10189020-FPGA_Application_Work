@@ -158,3 +158,71 @@ module int_interpolate_sinc8x2_16(
 	assign	oOut = m32O[30:15];
 		
 endmodule
+
+module	int_sqrt(
+	y,
+	x,
+	iCLK, iCTRL
+	);
+	
+	output	reg	[15:0]	y;
+	input	[31:0]	x;
+	input	iCLK, iCTRL;
+	
+	reg	[31:0]	mx;
+	reg	[15:0]	t, my;
+	
+// 	initial	$monitor("( %d,	%d\t)\t| %d	%d	%d	%d", iCTRL,t,x,mx,my,y);
+	
+	always	@(negedge iCTRL or negedge iCLK) begin
+		if (!iCTRL) begin
+			t <= 16'h8000;
+			y <= 0;
+			mx <= x;
+			my <= 0;
+		end
+		else if (0 == t) begin
+			y <= my;
+		end
+		else begin
+			if ((my+t)*(my+t)<=mx) my <= my+t;
+			t <= t >> 1;
+		end
+	end
+	
+endmodule
+
+module	int_sqrt_UAD( 
+	// uninterruptable, direct read X, 16 iCLk to send out
+	// iCTRL == 1 to enable
+	y,
+	x,
+	iCLK, iCTRL
+	);
+	
+	output	reg	[15:0]	y;
+	input	[31:0]	x;
+	input	iCLK, iCTRL;
+	
+	reg	[15:0]	t, my;
+	
+	initial	begin
+// 		$monitor("( %d,	%d\t)\t| %d	%d	%d", iCTRL,t,x,my,y);
+		t = 0;
+	end
+	
+	always	@(negedge iCLK) begin
+		if (0 == t) begin
+			if (iCTRL) begin
+				t <= 16'h8000;
+				my <= 16'd0;
+			end
+			y <= my;
+		end
+		else begin
+			if ((my+t)*(my+t)<=x) my <= my+t;
+			t <= t >> 16'd1;
+		end
+	end
+	
+endmodule

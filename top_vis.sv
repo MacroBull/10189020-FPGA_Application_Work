@@ -107,6 +107,7 @@ module top(
  	`define	SW_AUDIO_LED_INDICATOR_CHN	(iSW[16])
  	`define	SW_AUDIO_UNDERSAMPLEING	(iSW[15])
  	`define	SW_VIS_INTERP	(iSW[14])
+ 	`define	SW_VIS_USESRC	(iSW[13])
 // 	`define	SW_AUDIO_BYPASS	iSW[0]
 // 	`define	SW_DSP_FILTER_CLK	iSW[2]
 // 	`define	SW_DSP_VOL_OR_AGC	iSW[3]
@@ -267,6 +268,7 @@ module top(
 	
 	wire	`peak	aL, aR, pvL, pvR;
 	wire	`audio	 phL, phR;
+	wire	`audio	 r0, r1, r2, r3, r4, r5, r6, r7;
 	wire	[3:0]	lL, lR;
 	
 	// Amplitude(reduced)
@@ -278,12 +280,26 @@ module top(
 	uint15_log2	op13(lR, aR);
 	
 	// Hold by VSync (per frame)
-	dsp_peakHolder_max	op14(pvL, aL, iAUD_ADCDAT, mVGA_VS);
-	dsp_peakHolder_max	op15(pvR, aR, iAUD_ADCDAT, mVGA_VS);
+	dsp_peakHolder_max	op14(r0, aL, AUD_ADCLRCK, mVGA_VS);
+	dsp_peakHolder_max	op15(r2, aR, AUD_ADCLRCK, mVGA_VS);
 	 
 	// Hold by HSync (per line)
-	dsp_waveHolder_max	op16(phL, rL, iAUD_ADCDAT, mVGA_HS);
-	dsp_waveHolder_max	op17(phR, rR, iAUD_ADCDAT, mVGA_HS);
+// 	dsp_waveHolder_max	op16(r4, rL, AUD_ADCLRCK, mVGA_HS);
+// 	dsp_waveHolder_max	op17(r6, rR, AUD_ADCLRCK, mVGA_HS);
+
+	dsp_SRC_avg	op1c(r4, rL, AUD_ADCLRCK, mVGA_HS);
+	dsp_SRC_avg	op1d(r6, rR, AUD_ADCLRCK, mVGA_HS);
+	
+	dsp_SRC_power	#(12)	op18(r1, aL, AUD_ADCLRCK, iCLK_50, mVGA_VS);
+	dsp_SRC_power	#(12)	op19(r3, aR, AUD_ADCLRCK, iCLK_50, mVGA_VS);
+	
+	dsp_SRC_power	#(12)	op1a(r5, rL, AUD_ADCLRCK, iCLK_50, mVGA_HS);
+	dsp_SRC_power	#(12)	op1b(r7, rR, AUD_ADCLRCK, iCLK_50, mVGA_HS);
+	
+	assign	pvL = `SW_VIS_USESRC?r1:r0;
+	assign	pvR = `SW_VIS_USESRC?r3:r2;
+	assign	phL = `SW_VIS_USESRC?r5:r4;
+	assign	phR = `SW_VIS_USESRC?r7:r6;
 
 // 	visual_shadingLevelWaves	vsp0(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
 // 		(lL - 10) << 2, (lR - 10)<< 2);
@@ -296,6 +312,11 @@ module top(
 
 // 	visual_peak_progression vsp24(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
 // 		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
+
+// 	visual_wave_vertical vsp10(oVGA_R, oVGA_G, oVGA_B, mVGA_X, mVGA_Y, 
+// 		phL, phR, mVGA_HS);
+
+
 
 	visual_shadingLevelWaves	vsp00(v0R, v0G, v0B, mVGA_X, mVGA_Y, 
 		phL >>> 11, phR >>> 11);

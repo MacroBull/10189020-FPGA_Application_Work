@@ -49,7 +49,8 @@ module	dsp_waveHolder_max(
 	input	`audio	iIn;
 	input	iiCLK, ioCLK;
 	
-	reg	`audio	mMax, iAmp, mAmp;
+	reg	`audio	mMax;
+	wire	`audio	 iAmp, mAmp;
 	reg	moCLK_prev;
 	
 	int_redAbs	op0(iAmp, iIn);
@@ -67,6 +68,80 @@ module	dsp_waveHolder_max(
 	end
 	
 endmodule
+
+
+module	dsp_SRC_avg(
+	oOut,
+	iIn,
+	iCLK, iCHS
+	);
+	
+	output	reg	`audio	oOut;
+	input	`audio	iIn;
+	input	iCLK, iCHS;
+	
+	reg	signed	[31:0]	sum;
+	reg	signed	[31:0]	cnt;
+	reg	mCHS_prev, ctrl;
+	
+	always @(negedge iCLK) begin
+		mCHS_prev <= iCHS;
+		if ({mCHS_prev, iCHS} == 2'b01) begin
+			oOut <= sum / cnt;
+			
+			sum <= 0;
+			cnt <= 0;
+		end
+		else begin
+			ctrl <= 1'b0;
+			sum <= sum + iIn;
+			cnt <= cnt + 1;
+		end
+	end
+	
+endmodule
+
+module	dsp_SRC_power(
+	oOut,
+	iIn,
+	iCLK, iCCLK, iCHS
+	);
+	
+	output	reg	`audio	oOut;
+	input	`audio	iIn;
+	input	iCLK, iCCLK, iCHS;
+	
+	parameter	cnt_ws = 12;
+	
+	wire	`audio	mOut;
+	reg	signed	[31:0]	avg, ssum;
+// 	reg	[cnt_ws - 1:0]	cnt;
+	reg	signed	[31:0]	cnt;
+	reg	mCHS_prev, ctrl;
+	
+	int_sqrt_UAD	op0(mOut, (avg>=0)?avg:-avg, iCCLK, ctrl);
+	
+	always @(negedge iCLK) begin
+		mCHS_prev <= iCHS;
+		if ({mCHS_prev, iCHS} == 2'b01) begin
+//  			$display(">> %d	%d	last=%d", ssum, cnt, avg);
+			avg <= (ssum / cnt)<<<cnt_ws;
+			ctrl <= 1'b1;
+			oOut <= (ssum>=0)?mOut:-mOut;
+			
+			ssum <= 0;
+			cnt <= 0;
+		end
+		else begin
+			ctrl <= 1'b0;
+//  			$display("<< %d	%d", ssum, cnt);
+			ssum <= ssum + ( ((iIn>=0)?iIn:-iIn) * iIn >>> cnt_ws);
+			cnt <= cnt + 1;
+		end
+	end
+	
+endmodule
+
 
 
 // 
