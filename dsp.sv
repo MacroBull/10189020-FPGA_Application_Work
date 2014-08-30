@@ -729,86 +729,58 @@ endmodule
 // // 	
 // // endmodule
 // 
-// module dsp_AGC(
-// 	/*
-// 	* oOut = iIn *iVolume
-// 	* max volume = (vMax >> ws)(32x)
-// 	* max output Amp = 8191
-// 	* volume ramp rate = vRamp per cntMax@iCLK
-// 	*/
-// 	oOut,
-// 	iIn,
-// 	iCLK,
-// 	oVol);
-// 
-// 	output	[ws - 1: 0]	oOut;
-// 	input	[ws - 1: 0]	iIn;
-// 	output	[31:0]	oVol;
-// 	input	iCLK;
-// 	
-// 	parameter	ws = 16;
-// 	parameter	cntMax = 36;
-// 	parameter	poMax = 8191 * 65536;
-// 	parameter	vRamp = 32'd128, vMax = 32'h200000;
-// 	
-// 	wire	[31:0]	m32In, m32Out;
-// 	
-// 	reg	[31:0]	vol;
-// 	reg	[15:0]	mAbs, mMax;
-// 	reg	[15:0]	cnt;
-// 	
-// 	i16to32	conv0(m32In, iIn);
-// 	assign	oOut = m32Out[31:16];
-// 	assign	oVol = vol;
-// 	
-// 	assign	m32Out = m32In * vol;
-// 	
-// 	always @(posedge iCLK) begin
-// 		mAbs <= iIn[15]?~iIn:iIn; // get amplitude
-// 		if (mAbs > mMax) begin // a higher peak, lower the volume
-// 			vol <= poMax / mAbs;
-// 			mMax <= mAbs;
-// 			cnt <=cntMax;
-// 		end
-// 		else 
-// 			if (cnt)
-// 				cnt <= cnt - 1;
-// 			else begin // not a higher peak, raise volume by vRamp if less than vMax
-// 				cnt <= cntMax;
-// 				if (vol < vMax)
-// 					vol <= vol + vRamp;
-// 				else
-// 					vol <= vMax;
-// 				mMax <= poMax / vol;
-// 			end
-// 	end
-// 	
-// endmodule
-// 
-// 
-// // module dsp_oscilloscope(
-// // 	oColor,
-// // 	iX, iY,
-// // 	iDataCLK,
-// // 	iIn);
-// // 	
-// // // 	output	[29:0]	oColor;
-// // 	output	oColor;
-// // 	
-// // 	input	[9:0]	iX, iY;
-// // 	input	iDataCLK;
-// // 	input	[ws - 1:0]	iIn;
-// // 	
-// // 	parameter	ws = 16;
-// // 	parameter	seqLen = 64;
-// // 	
-// // 	reg	[seqLen - 1:0][ws - 1:0]	x;
-// // 	
-// // 	assign oColor = ((iX>=128) & (iX<384)) &
-// // 		(iY - 10'd47 == ((16'd32768+ x[(iX - 10'd128)/10'd4]) >> 8) ); // 128+-
-// // 	
-// // 	always	@(posedge iDataCLK) begin
-// // 		x <= {x[seqLen - 2:0], iIn};
-// // 	end
-// // 	
-// // endmodule
+module dsp_AGC(
+	/*
+	* oOut = iIn *iVolume
+	* max volume = (vMax >> ws)(32x)
+	* max output Amp = 8191
+	* volume ramp rate = vRamp per cntMax@iCLK
+	*/
+	oOut,
+	iIn,
+	iCLK,
+	oVol);
+
+	output	`audio	oOut;
+	input	`audio	iIn;
+	output	[31:0]	oVol;
+	input	iCLK;
+	
+	parameter	cntMax = 36;
+	parameter	poMax = 16384 * 65536;
+	parameter	vRamp = 32'd128, vMax = 32'h400000;
+	
+	wire	signed	[31:0]	m32In, m32Out;
+	
+	reg	[31:0]	vol;
+	reg	[15:0]	mAbs, mMax;
+	reg	[15:0]	cnt;
+	
+	assign	m32In = iIn;
+	assign	oOut = m32Out[31:16];
+	assign	oVol = vol;
+	
+	int_redAbs	op0(mAbs, iIn);
+	
+	assign	m32Out = m32In * vol;
+	
+	always @(posedge iCLK) begin
+		if (mAbs > mMax) begin // a higher peak, lower the volume
+			vol <= poMax / mAbs;
+			mMax <= mAbs;
+			cnt <=cntMax;
+		end
+		else 
+			if (cnt)
+				cnt <= cnt - 1;
+			else begin // not a higher peak, raise volume by vRamp if less than vMax
+				cnt <= cntMax;
+				if (vol < vMax)
+					vol <= vol + vRamp;
+				else
+					vol <= vMax;
+				mMax <= poMax / vol;
+			end
+	end
+	
+endmodule
