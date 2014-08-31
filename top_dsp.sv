@@ -109,6 +109,7 @@ module top(
 //  	`define	SW_VIS_INTERP	(iSW[14])
 //  	`define	SW_VIS_USESRC	(iSW[13])
 	`define	SW_DSP_VOL_OR_AGC	(iSW[3])
+	`define	SW_DSP_VOL_CLK_DIR	(iSW[4])
 // 	`define	SW_DSP_FIR_OR_IIR	iSW[4]
 // 	`define	SW_DSP_IIR_SW0	iSW[5]
 // 	`define	SW_DSP_IIR_SW1	iSW[6]
@@ -125,6 +126,7 @@ module top(
 	parameter	audio_ws = 16;
 	
 	`define	audio	signed	[15:0]
+	`define	audio32	signed	[31:0]
 	`define	peak	[14:0]
 	// 15 bit, reduced
 	`define	color	[9:0]  
@@ -173,8 +175,6 @@ module top(
 	
 	///////////////Audio Sink/Source Control////////////////////////
 	
-	assign	oLEDR[17] = (rR == 16'd32768); // overflow indicator
-	
 	assign	oAUD_DACDAT = (`SW_AUDIO_BYPASS)?iAUD_ADCDAT:DACStream; // bit stream bypass, no format convert process
 	assign	oLEDG[4:0] = {DACStream, iAUD_ADCDAT, AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK}; // Audio interface debugging on LED_GREEN
 	assign	ioB[7:0] = {DACStream, 1'b1, AUD_DACLRCK, 1'b1, AUD_BCLK, 1'b1, AUD_ADCLRCK, iAUD_ADCDAT}; // Audio interface debugging on GPIO1
@@ -182,14 +182,48 @@ module top(
 	int_redAbs op010(oLEDR[15:0], (`SW_AUDIO_BYPASS)? // Display amplitude on LED_RED, SW_AUDIO_LED_INDICATOR_CHN to select the channel
 		((`SW_AUDIO_LED_INDICATOR_CHN)?iL:iR):((`SW_AUDIO_LED_INDICATOR_CHN)?oL:oR));
 		
-	assign	vL = iL;
-	assign	vR = iR;
+	///////////////////////Volume////////////////////////////
+	assign	oLEDR[17] = (rR == 16'd32768); // overflow indicator
 	
-	dsp_AGC	dsp00(oL, vL, AUD_ADCLRCK);
-	dsp_AGC	dsp01(oR, vR, AUD_ADCLRCK, vol_AGC);
-	
+	wire	`audio	v0, v1, v2, v3;
 	wire	[31:0]	vol_AGC;
+	reg	[5:0]	volume;
+
+	parameter	MAX_VOL	= 24;
+// 	initial	volume = MAX_VOL / 2; 
+	initial	volume = 15; 
+
+	
+	// Continuous manual volume change
+	always @(posedge mCLK_50Div[21]) begin
+		if	((!`KEY_VOL_UP) &(volume < MAX_VOL)) 
+			volume <= volume + 1;
+		else if	((!`KEY_VOL_DOWN) &(volume >0)) 
+			volume <= volume - 1;
+	end
+	
 	hex8 test_inst18(oHEXs[63:0], vol_AGC);
+	
+	dsp_AGC	dsp00(v0, vL, `SW_DSP_VOL_CLK_DIR ^ AUD_DACLRCK);
+	dsp_AGC	dsp01(v1, vR, `SW_DSP_VOL_CLK_DIR ^ AUD_DACLRCK, vol_AGC);
+	
+	dsp_volume_log2	dsp02(v2, vL, volume);
+	dsp_volume_log2	dsp03(v3, vR, volume);
+	
+	
+	assign	oL = `SW_DSP_VOL_OR_AGC?v0:v2;
+	assign	oR = `SW_DSP_VOL_OR_AGC?v1:v3;
+	
+	////////////////////?DSP/////////////////////////////////
+	
+	wire	mDSP_CLK;
+	assign	mDSP_CLK = (`SW_AUDIO_UNDERSAMPLEING)?mVGA_HS:(~AUD_DACLRCK);
+	
+ 	dsp_iir_LP	dsp20(vR, iR, mDSP_CLK);
+	dsp_iir_BS	dsp21(vL, iL, mDSP_CLK);
+// 	dsp_fir_cascade	dsp30(vR, iR, mDSP_CLK);
+
+
 
 	//////////////Video/////////////////////
 	// Configure VGA output as 640x360@28Hz (on my Philips is 640x350@26Hz)

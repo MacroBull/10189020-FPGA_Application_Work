@@ -88,9 +88,12 @@ module test;
 // 	fi_div	op1(x, z, w);
 // 	int_norm op2(a, e);
 // 	int_sqrt	op3(a, o, CLK, R);
-	int_sqrt_UAD	op6(a, o, CLK, R);
+// 	int_sqrt_UAD	op6(a, o, CLK, R);
 	
-	dsp_SRC_power	#(8) dsp(s1, s0, CLK, R);
+// 	dsp_SRC_power	#(8) dsp(s1, s0, CLK, R);
+// 	dsp_iir_basic #(16, -507, 252, 256, -510, 256, 256)dsp2(s1, s0, CLK);
+// 	dsp_iir_BS	dsp8(s1, s0, CLK);
+	dsp_fir_multiband	dsp9(s1, s0, CLK);
 	
 	always begin
 		#40 R = ~R;
@@ -101,23 +104,33 @@ module test;
 	
 	assign	s0 = s;
 	
-	initial	s = 0;
-	always	@(posedge CLK) begin
-		if (s>=16*70) s<=-16*70;
-		else s <= s + 160;
-// 		s <= 19;
+	initial	begin
+		s = 0;
+// 		s0 = 0;
+// 		s1 = 0;
+		#4
+		s = 100;
+// 		#2 s =0;
 	end
+	
+// 	always	@(posedge CLK) begin
+// 		if (s>=16*70) s<=-16*70;
+// 		else s <= s + 160;
+// // 		s <= 19;
+// 	end
 	
 	initial begin
 		cnt =0;
-		$monitor("%b: %d	%d", R, s0, s1);
+// 		$monitor("%b: %d	%d", R, s0, s1);
+		$dumpvars(0, cnt, CLK, s0, s1);
+		$monitor(">>>%d\t: %d	%d", cnt, s0, s1);
+// 		$monitor("%d	%d", s0, s1);
 		
-		R =0;
-		#16 R = 1;
+// 		R =0;
+// 		#16 R = 1;
 		
 		
-		#180;
-		
+		#960;
 		$finish;
 	
 	end
