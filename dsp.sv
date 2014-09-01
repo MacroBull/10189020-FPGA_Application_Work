@@ -300,22 +300,22 @@ module	dsp_fir_multiband(
 	iCLK,
 	iIndex);
 	
-	output	[ws - 1: 0]	oOut;
-	input	[ws - 1: 0]	iIn;
+	output	`audio	oOut;
+	input	`audio	iIn;
 	input	iCLK;
 	input	[2:0]	iIndex;
 	
-	parameter	ws = 16, ews = 32, dp = 12;
+	parameter	dp = 12;
 	parameter	argLen = 1;
 	parameter	order = 15;
 	
-	reg	[order - 1:0][ews - 1:0]	x;
+	reg	signed [order - 1:0][31:0]	x;
 	
 	
-	wire	[ews - 1: 0] m32In, m32B0
+	wire	[31: 0] m32In, m32B0
 		, m32B1, m32B2, m32B3, m32B4, m32B5, m32B6, m32B7;
 
-	i16to32	conv0(m32In, iIn);
+	assign	m32In = iIn;
 	
 	// m32Bx = filter(m32In)
 	assign	oOut = ((iIndex == 0)? m32B0[31:16]: 
@@ -491,22 +491,22 @@ module	dsp_fir_spectrum( /*
 	iCLK);
 	
 	output	[4*5 - 1: 0]	oSpec;
-	input	[ws - 1: 0]	iIn;
+	input	`peak	iIn;
 	input	iCLK;
 	
 	parameter	ws = 16, ews = 32, dp = 12;
 	parameter	order = 15;
 	parameter	cntMax = 6000;
 	
-	reg	[order - 1:0][ews - 1:0]	x;
+	reg	[order - 1:0][31:0]	x;
 	
 	
-	wire	[ews - 1: 0] m32In, m32B0, m32B1, m32B2, m32B3; // 32-bit registers for x and y
+	wire	[31: 0] m32In, m32B0, m32B1, m32B2, m32B3; // 32-bit registers for x and y
 	wire	[4: 0] m5B0, m5B1, m5B2, m5B3; // 5-bit wire for log(gain)
 	reg	[4: 0] b5B0, b5B1, b5B2, b5B3, m5M0, m5M1, m5M2, m5M3; // 5-bit registers for synced/holded log(gain)
 	reg	[15: 0] cnt;
 
-	i16to32	conv0(m32In, iIn);	
+	assign	m32In = iIn;
 	assign	oSpec = {m5M3, m5M2, m5M1, m5M0};
 	
 	always @(posedge iCLK) begin
