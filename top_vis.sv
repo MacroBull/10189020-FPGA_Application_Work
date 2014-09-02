@@ -103,7 +103,7 @@ module top(
 	`define	KEY_VOL_UP	(iKEY[1])
 	`define	KEY_VOL_DOWN	(iKEY[0])
 	
-	`define	SW_AUDIO_BYPASS	(iSW[17])
+	`define	SW_VIS_LOCK	(iSW[17])
  	`define	SW_AUDIO_LED_INDICATOR_CHN	(iSW[16])
  	`define	SW_AUDIO_UNDERSAMPLEING	(iSW[15])
  	`define	SW_VIS_INTERP	(iSW[14])
@@ -177,12 +177,14 @@ module top(
 	
 	assign	oLEDR[17] = (rR == 16'd32768); // overflow indicator
 	
-	assign	oAUD_DACDAT = (`SW_AUDIO_BYPASS)?iAUD_ADCDAT:DACStream; // bit stream bypass, no format convert process
+// 	assign	oAUD_DACDAT = (`SW_AUDIO_BYPASS)?iAUD_ADCDAT:DACStream; // bit stream bypass, no format convert process
+	assign	oAUD_DACDAT = DACStream; // bit stream bypass, no format convert process
 	assign	oLEDG[4:0] = {DACStream, iAUD_ADCDAT, AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK}; // Audio interface debugging on LED_GREEN
 	assign	ioB[7:0] = {DACStream, 1'b1, AUD_DACLRCK, 1'b1, AUD_BCLK, 1'b1, AUD_ADCLRCK, iAUD_ADCDAT}; // Audio interface debugging on GPIO1
 	
-	int_redAbs op010(oLEDR[15:0], (`SW_AUDIO_BYPASS)? // Display amplitude on LED_RED, SW_AUDIO_LED_INDICATOR_CHN to select the channel
-		((`SW_AUDIO_LED_INDICATOR_CHN)?iL:iR):((`SW_AUDIO_LED_INDICATOR_CHN)?oL:oR));
+// 	int_redAbs op010(oLEDR[15:0], (`SW_AUDIO_BYPASS)? // Display amplitude on LED_RED, SW_AUDIO_LED_INDICATOR_CHN to select the channel
+// 		((`SW_AUDIO_LED_INDICATOR_CHN)?iL:iR):((`SW_AUDIO_LED_INDICATOR_CHN)?oL:oR));
+	int_redAbs op010(oLEDR[15:0], ((`SW_AUDIO_LED_INDICATOR_CHN)?oL:oR));
 	
 // 	assign	oL = -iL;
 // 	assign	oR = -iR;u
@@ -322,28 +324,28 @@ module top(
 		phL >>> 11, phR >>> 11);
 
 	visual_wave_vertical vsp10(v1R, v1G, v1B, mVGA_X, mVGA_Y, 
-		phL, phR, mVGA_HS);
+		phL, phR, mVGA_HS | `SW_VIS_LOCK);
 
 	visual_peak_progression vsp24(v2R, v2G, v2B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
+		pvL, pvR, mVGA_VS | `SW_VIS_LOCK, `SW_VIS_INTERP);
 		
 	visual_peak_log vsp28(v3R, v3G, v3B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS, `SW_VIS_INTERP);
+		pvL, pvR, mVGA_VS | `SW_VIS_LOCK, `SW_VIS_INTERP);
 
 	visual_freePainting	vsp30(v4R, v4G, v4B, mVGA_X, mVGA_Y, 
-		mCLK_50Div[3], mVGA_VS);
+		mCLK_50Div[3], mVGA_VS | `SW_VIS_LOCK);
 		
 	visual_blocks	vsp40(v5R, v5G, v5B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_CLK, mVGA_VS);
+		pvL, pvR, mVGA_CLK, mVGA_VS | `SW_VIS_LOCK);
 
 	visual_franticStripes	vsp41(v6R, v6G, v6B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mCLK_50Div[9], mVGA_VS);
+		pvL, pvR, mCLK_50Div[9], mVGA_VS | `SW_VIS_LOCK);
 
 	visual_tablecloth vsp50(v7R, v7G, v7B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS);
+		pvL, pvR, mVGA_VS | `SW_VIS_LOCK);
 
 	visual_tablecloth_color vsp51(v8R, v8G, v8B, mVGA_X, mVGA_Y, 
-		pvL, pvR, mVGA_VS);
+		pvL, pvR, mVGA_VS | `SW_VIS_LOCK);
 		
 	wire	`color	
 		v0R, v1R, v2R, v3R, v4R, v5R, v6R, v7R, v8R,
