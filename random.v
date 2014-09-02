@@ -22,6 +22,33 @@ module	rand_LNRand(
 	end
 endmodule
 
+module	rand_MT32(
+	oOut,
+	iSeed,
+	iRST_N,
+	iCLK);
+	
+	output	[31:0]	oOut;
+	input	[31:0]	iSeed;
+	input	iRST_N;
+	input	iCLK;
+	
+	reg	[31:0]	oOut, MT;
+	
+	always	@(negedge iRST_N or negedge iCLK) begin
+		if (!iRST_N) MT <= iSeed;
+		else begin
+			MT = MT ^ (MT >> 11);
+			MT = MT ^ ((MT << 7) & 2636928640);
+			MT = MT ^ ((MT << 15) & 4022730752);
+			MT = MT ^ (MT >> 18);
+			oOut = MT;
+		end
+	end
+endmodule
+
+
+
 
 module	rand_adc(
 	oOut,

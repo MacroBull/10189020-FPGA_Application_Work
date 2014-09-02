@@ -16,7 +16,7 @@ module test;
 	parameter	ws = 16, dp = 8;
 
 	wire [15:0] a, b, c;
-	wire signed [31:0] l, m, n;
+	wire /*signed*/ [31:0] l, m, n;
 
 	reg  [15:0] e, f, g;
 	reg  [31:0] o, p, q;
@@ -28,6 +28,7 @@ module test;
 	wire	CLK;
 	reg R;
 	
+	initial cnt <= 0;
 	always #1 cnt <= cnt +1;
 	assign CLK = cnt[0];
 	
@@ -93,25 +94,25 @@ module test;
 // 	dsp_SRC_power	#(8) dsp(s1, s0, CLK, R);
 // 	dsp_iir_basic #(16, -507, 252, 256, -510, 256, 256)dsp2(s1, s0, CLK);
 // 	dsp_iir_BS	dsp8(s1, s0, CLK);
-	dsp_fir_multiband	dsp9(s1, s0, CLK);
+// 	dsp_fir_multiband	dsp9(s1, s0, CLK);
 	
-	always begin
-		#40 R = ~R;
-	end
-	
-	reg	signed[15:0]	s;
-	wire	signed[15:0]	s0, s1;
-	
-	assign	s0 = s;
-	
-	initial	begin
-		s = 0;
-// 		s0 = 0;
-// 		s1 = 0;
-		#4
-		s = 100;
-// 		#2 s =0;
-	end
+// 	always begin
+// 		#40 R = ~R;
+// 	end
+// 	
+// 	reg	signed[15:0]	s;
+// 	wire	signed[15:0]	s0, s1;
+// 	
+// 	assign	s0 = s;
+// 	
+// 	initial	begin
+// 		s = 0;
+// // 		s0 = 0;
+// // 		s1 = 0;
+// 		#4
+// 		s = 100;
+// // 		#2 s =0;
+// 	end
 	
 // 	always	@(posedge CLK) begin
 // 		if (s>=16*70) s<=-16*70;
@@ -119,61 +120,40 @@ module test;
 // // 		s <= 19;
 // 	end
 	
+// 	initial begin
+// 		cnt =0;
+// // 		$monitor("%b: %d	%d", R, s0, s1);
+// 		$dumpvars(0, cnt, CLK, s0, s1);
+// 		$monitor(">>>%d\t: %d	%d", cnt, s0, s1);
+// // 		$monitor("%d	%d", s0, s1);
+// 		
+// // 		R =0;
+// // 		#16 R = 1;
+// 		
+// 		
+// 		#960;
+// 		$finish;
+// 	
+// 	end
+	
 	initial begin
-		cnt =0;
-// 		$monitor("%b: %d	%d", R, s0, s1);
-		$dumpvars(0, cnt, CLK, s0, s1);
-		$monitor(">>>%d\t: %d	%d", cnt, s0, s1);
-// 		$monitor("%d	%d", s0, s1);
+		$dumpvars(0, cnt, CLK, l, a);
+		$monitor(">>>%d\t: %d	%d	%d", cnt, CLK, l, a);
 		
-// 		R =0;
-// 		#16 R = 1;
+		R = 1;
+		#2
+		R = 0;
+		o = 1;
+		#2
+		R = 1;
 		
 		
-		#960;
+		
+		#60;
 		$finish;
 	
 	end
 	
+	rand_MT32 op0a(l, o, R, CLK);
+	assign	a = l[15:0];
 endmodule
-/*
-`define	audio	signed[15:0]
-
-module	dsp_SRC_power(
-	oOut,
-	iIn,
-	iCLK, iCHS
-	);
-	
-	output	reg	`audio	oOut;
-	input	`audio	iIn;
-	input	iCLK, iCHS;
-	
-	parameter	cnt_ws = 12;
-	
-	wire	`audio	mOut;
-	reg	[31:0]	avg, sum;
-	reg	[cnt_ws - 1:0]	cnt;
-	reg	mCHS_prev, ctrl;
-	
-	int_sqrt_UAD	op0(mOut, avg, iCLK, ctrl);
-	
-	always @(negedge iCLK) begin
-		mCHS_prev <= iCHS;
-		if ({mCHS_prev, iCHS} == 2'b01) begin
-// 			$display(">> %d	%d	last=%d", sum, cnt, avg);
-			avg <= (sum / cnt)<<cnt_ws;
-			ctrl <= 1'b1;
-			oOut <= mOut;
-			sum <= 0;
-			cnt <= 0;
-		end
-		else begin
-			ctrl <= 1'b0;
-			sum <= sum + (iIn * iIn >> cnt_ws);
-			cnt <= cnt + 1;
-		end
-	end
-	
-endmodule
-*/

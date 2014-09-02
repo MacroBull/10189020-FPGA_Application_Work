@@ -65,7 +65,7 @@ module adcRead(
 	input	iAUD_ADCDAT;
 	input	AUD_ADCLRCK, AUD_BCLK;
 	
-	parameter	i2sws = 32, dataws = 16, overflow_reduce = 1;
+	parameter	i2sws = 32, dataws = 16;//, overflow_reduce = 1;
 	
 	reg	signed	[dataws - 1:0]	oLData, oRData;
 	reg	signed	[i2sws - 1:0]	dataBuff;

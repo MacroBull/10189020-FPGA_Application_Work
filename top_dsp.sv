@@ -219,8 +219,11 @@ module top(
 	wire	mDSP_CLK;
 	assign	mDSP_CLK = (`SW_AUDIO_UNDERSAMPLEING)?mVGA_HS:(~AUD_DACLRCK);
 	
+//  	dsp_iir_LS	dsp20(vR, iR, mDSP_CLK);
  	dsp_iir_LP	dsp20(vR, iR, mDSP_CLK);
-	dsp_iir_BS	dsp21(vL, iL, mDSP_CLK);
+	dsp_iir_LP	dsp21(vL, iL, mDSP_CLK);
+//  	dsp_iir_BS	dsp20(vR, iR, mDSP_CLK);
+// 	dsp_iir_BS	dsp21(vL, iL, mDSP_CLK);
 // 	dsp_fir_cascade	dsp30(vR, iR, mDSP_CLK);
 
 
