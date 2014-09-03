@@ -88,9 +88,9 @@ module test;
 // 	fi_div	op1(x, z, w);
 // 	int_norm op2(a, e);
 // 	int_sqrt	op3(a, o, CLK, R);
-	int_sqrt_UAD	op6(a, o, CLK, R);
-	
-	dsp_SRC_power	#(8) dsp(s1, s0, CLK, R);
+// 	int_sqrt_UAD	op6(a, o, CLK, R);
+// 	
+// 	dsp_SRC_power	#(8) dsp(s1, s0, CLK, R);
 	
 	always begin
 		#40 R = ~R;
@@ -108,9 +108,10 @@ module test;
 // 		s <= 19;
 	end
 	
+	int_interpolate_sinc8x2_16 opx(a, 4, 0888, 32767, 32767, 0);
 	initial begin
 		cnt =0;
-		$monitor("%b: %d	%d", R, s0, s1);
+		$monitor(a);
 		
 		R =0;
 		#16 R = 1;

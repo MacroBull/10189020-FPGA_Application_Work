@@ -155,7 +155,7 @@ module int_interpolate_sinc8x2_16(
 		(iIndex==5)? (iS1*25696 + iS2*-4521 + iP2*-3825 + iP1*15418):
 		(iP1*32768);
 	
-	assign	oOut = m32O[30:15];
+	assign	oOut = m32O[30]?32768:m32O[30:15]; // overflow proof for peak
 		
 endmodule
 
