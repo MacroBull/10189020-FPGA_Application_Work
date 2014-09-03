@@ -22,18 +22,18 @@ module	rand_LNRand(
 	end
 endmodule
 
-module	rand_MT32(
+module	rand_MT31(
 	oOut,
 	iSeed,
 	iRST_N,
 	iCLK);
 	
-	output	[31:0]	oOut;
-	input	[31:0]	iSeed;
+	output	[30:0]	oOut;
+	input	[30:0]	iSeed;
 	input	iRST_N;
 	input	iCLK;
 	
-	reg	[31:0]	oOut, MT;
+	reg	[30:0]	oOut, MT;
 	
 	always	@(negedge iRST_N or negedge iCLK) begin
 		if (!iRST_N) MT <= iSeed;
