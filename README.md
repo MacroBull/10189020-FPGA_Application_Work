@@ -1,3 +1,11 @@
+8 VISUALIZATION ADDED IN THIS BRANCH!
+-------------------
+Check the video here: http://youtu.be/GCL0K5yfsio
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/feature-visual/wave.jpg)
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/feature-visual/peak.jpg)
+![image](https://raw.githubusercontent.com/MacroBull/10189020-FPGA_application_work/feature-visual/osc.jpg)
+
+
 10189020-FPGA应用系统设计 设计作业: 
 ======================================
 基于DE2-70的音频处理与可视化系统
